@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
 import { AppLayout } from '@/components/navigation/AppLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,7 @@ import { StatusBadge } from '@/components/feedback/StatusBadge';
 import { mockApi } from '@/lib/mock-api';
 import { VPNNode } from '@/types';
 import Link from 'next/link';
+import axios from 'axios';
 import {
   ArrowLeft,
   Globe,
@@ -26,6 +28,8 @@ export default function ConnectToNodePage() {
   const router = useRouter();
   const params = useParams();
   const nodeId = params.id as string;
+  const address = useTonAddress();
+  const [tonConnectUI] = useTonConnectUI();
 
   const [node, setNode] = useState<VPNNode | null>(null);
   const [balance, setBalance] = useState({ ton: 0, usd: 0 });
@@ -55,18 +59,42 @@ export default function ConnectToNodePage() {
   const handleConnect = async () => {
     if (!node) return;
 
+    if (!address) {
+      alert('Please connect your TON wallet first');
+      return;
+    }
+
     setConnecting(true);
     try {
-      // Simulate connection process
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Step 1: Send real TON transaction to SessionManager contract
+      const sessionManagerAddress = process.env.NEXT_PUBLIC_SESSION_MANAGER_ADDRESS;
 
-      // Create mock session
-      const session = await mockApi.createSession(nodeId, depositAmount[0]);
+      if (!sessionManagerAddress) {
+        throw new Error('SessionManager contract address not configured');
+      }
 
-      // Redirect to session page
-      router.push(`/session/${session.id}`);
-    } catch (error) {
+      const result = await tonConnectUI.sendTransaction({
+        validUntil: Math.floor(Date.now() / 1000) + 600, // 10 minutes
+        messages: [
+          {
+            address: sessionManagerAddress,
+            amount: (depositAmount[0] * 1e9).toString(), // Convert TON to nanoTON
+            // Note: Payload should be properly built for StartSession message
+            // For hackathon, sending simple value transaction
+          }
+        ]
+      });
+
+      console.log('Real blockchain transaction sent:', result);
+
+      // Step 2: Create mock session locally
+      const mockSession = await mockApi.createSession(nodeId, depositAmount[0]);
+
+      // Redirect to mock session page
+      router.push(`/session/${mockSession.id}`);
+    } catch (error: any) {
       console.error('Connection failed:', error);
+      alert(error.message || 'Failed to start session');
       setConnecting(false);
     }
   };

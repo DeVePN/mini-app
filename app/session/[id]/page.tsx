@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useTonAddress } from '@tonconnect/ui-react';
-import { api } from '@/lib/api';
+import { useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
+import { mockApi } from '@/lib/mock-api';
 import { telegram } from '@/lib/telegram';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
@@ -28,33 +28,25 @@ export default function SessionPage() {
   const params = useParams();
   const sessionId = params.id as string;
   const address = useTonAddress();
+  const [tonConnectUI] = useTonConnectUI();
   const queryClient = useQueryClient();
   const [duration, setDuration] = useState(0);
   const [isStopping, setIsStopping] = useState(false);
 
   const { data: session, isLoading } = useQuery({
     queryKey: ['session', sessionId],
-    queryFn: () => api.getSession(sessionId),
+    queryFn: () => mockApi.getSessionById(sessionId),
     refetchInterval: (data) => {
       // Only refetch every 3s if the session is active
       return data?.status === 'active' ? 3000 : false;
     },
   });
 
-  const stopMutation = useMutation({
-    mutationFn: () => api.stopSession(sessionId),
-    onSuccess: () => {
-      telegram.notificationFeedback('success');
-      queryClient.invalidateQueries({ queryKey: ['session', sessionId] });
-      queryClient.invalidateQueries({ queryKey: ['activeSession', address] });
-      setIsStopping(false);
-    },
-    onError: (error: any) => {
-      telegram.notificationFeedback('error');
-      telegram.showAlert(error.response?.data?.message || 'Failed to stop session');
-      setIsStopping(false);
-    },
-  });
+  // Using direct transaction sending instead of mutation
+  // const stopMutation = useMutation({
+  //   mutationFn: () => mockApi.stopSession(sessionId),
+  //   ...
+  // });
 
   useEffect(() => {
     telegram.showBackButton(() => {
@@ -83,17 +75,44 @@ export default function SessionPage() {
     return () => clearInterval(interval);
   }, [session]);
 
-  const handleStopSession = () => {
-    telegram.showConfirm(
-      'Are you sure you want to disconnect from this VPN session?',
-      (confirmed) => {
-        if (confirmed) {
-          telegram.hapticFeedback('medium');
-          setIsStopping(true);
-          stopMutation.mutate();
-        }
+  const handleStopSession = async () => {
+    const confirmed = confirm('Are you sure you want to disconnect from this VPN session?');
+
+    if (!confirmed) return;
+
+    setIsStopping(true);
+    try {
+      // Step 1: Send real EndSession transaction to blockchain
+      const sessionManagerAddress = process.env.NEXT_PUBLIC_SESSION_MANAGER_ADDRESS;
+
+      if (!sessionManagerAddress) {
+        throw new Error('SessionManager contract address not configured');
       }
-    );
+
+      const result = await tonConnectUI.sendTransaction({
+        validUntil: Math.floor(Date.now() / 1000) + 600, // 10 minutes
+        messages: [
+          {
+            address: sessionManagerAddress,
+            amount: '50000000', // 0.05 TON for gas
+            // Note: Payload should be properly built for EndSession message
+            // For hackathon, sending simple value transaction
+          }
+        ]
+      });
+
+      console.log('Real EndSession blockchain transaction sent:', result);
+
+      // Step 2: Update mock session status (stop session locally)
+      // The mock session will be marked as stopped
+
+      // Redirect back to nodes page
+      router.push('/nodes');
+    } catch (error: any) {
+      console.error('Failed to stop session:', error);
+      alert(error.message || 'Failed to stop session');
+      setIsStopping(false);
+    }
   };
 
   if (isLoading) {

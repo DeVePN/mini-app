@@ -21,14 +21,14 @@ export default function SessionsPage() {
 
   const loadSessions = async () => {
     try {
-      const [active, history, walletBalance] = await Promise.all([
+      // Load mock sessions
+      const [active, walletBalance] = await Promise.all([
         mockApi.getActiveSessions(),
-        mockApi.getSessionById('session-1'),
         mockApi.getWalletBalance(),
       ]);
 
       setActiveSessions(active);
-      setSessionHistory(history ? [history] : []);
+      setSessionHistory([]); // Empty history for now
       setBalance(walletBalance);
     } catch (error) {
       console.error('Failed to load sessions:', error);

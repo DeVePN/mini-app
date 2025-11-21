@@ -8,6 +8,7 @@ import { EnhancedNodeCard } from '@/components/cards/EnhancedNodeCard';
 import { MetricCard } from '@/components/data-display/MetricCard';
 import { Button } from '@/components/ui/button';
 import { Globe, Clock, Wallet as WalletIcon, TrendingUp, Server, Award } from 'lucide-react';
+import { useTonAddress } from '@tonconnect/ui-react';
 import { mockApi } from '@/lib/mock-api';
 import { VPNNode, VPNSession } from '@/types';
 import Link from 'next/link';
@@ -15,6 +16,7 @@ import { useRouter } from 'next/navigation';
 
 export default function Home() {
   const router = useRouter();
+  const address = useTonAddress();
   const [activeSession, setActiveSession] = useState<VPNSession | null>(null);
   const [recommendedNodes, setRecommendedNodes] = useState<VPNNode[]>([]);
   const [balance, setBalance] = useState({ ton: 0, usd: 0, locked: 0, available: 0 });
@@ -23,6 +25,7 @@ export default function Home() {
   useEffect(() => {
     const loadDashboard = async () => {
       try {
+        // Load mock nodes and sessions
         const [sessions, nodes, walletBalance] = await Promise.all([
           mockApi.getActiveSessions(),
           mockApi.getNodes(),
@@ -40,7 +43,7 @@ export default function Home() {
     };
 
     loadDashboard();
-  }, []);
+  }, [address]);
 
   const handleDisconnect = async () => {
     // Simulate disconnect
@@ -95,27 +98,27 @@ export default function Home() {
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <MetricCard
-            title="Total Sessions"
-            value="156"
-            icon={Clock}
-            trend={{ value: 12, isPositive: true }}
+            title="Available Nodes"
+            value={String(recommendedNodes.length)}
+            icon={Server}
+            subtitle="Online now"
           />
           <MetricCard
-            title="Data Used"
-            value="245 GB"
-            icon={TrendingUp}
-            subtitle="This month"
-          />
-          <MetricCard
-            title="Total Spent"
-            value="12.5 TON"
+            title="Your Balance"
+            value={`${balance.ton.toFixed(2)} TON`}
             icon={WalletIcon}
-            subtitle="All time"
+            subtitle="Available"
           />
           <MetricCard
-            title="Favorite Nodes"
-            value="5"
-            icon={Award}
+            title="Network Status"
+            value="Operational"
+            icon={TrendingUp}
+            subtitle="All systems OK"
+          />
+          <MetricCard
+            title="Active Session"
+            value={activeSession ? "Connected" : "No Session"}
+            icon={Globe}
           />
         </div>
 

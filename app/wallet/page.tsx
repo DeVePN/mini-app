@@ -7,7 +7,7 @@ import { TransactionCard } from '@/components/cards/TransactionCard';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { mockApi } from '@/lib/mock-api';
+import { useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
 import { Transaction, PaymentChannel } from '@/types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -15,6 +15,8 @@ import { ArrowUpRight, ArrowDownLeft, Layers } from 'lucide-react';
 
 export default function WalletPage() {
   const router = useRouter();
+  const address = useTonAddress();
+  const [tonConnectUI] = useTonConnectUI();
   const [balance, setBalance] = useState({ ton: 0, usd: 0, locked: 0, available: 0 });
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [channels, setChannels] = useState<PaymentChannel[]>([]);
@@ -22,19 +24,16 @@ export default function WalletPage() {
 
   useEffect(() => {
     loadWalletData();
-  }, []);
+  }, [address]);
 
   const loadWalletData = async () => {
     try {
-      const [walletBalance, txData, channelData] = await Promise.all([
-        mockApi.getWalletBalance(),
-        mockApi.getTransactions(),
-        mockApi.getPaymentChannels(),
-      ]);
-
-      setBalance(walletBalance);
-      setTransactions(txData.data.slice(0, 5));
-      setChannels(channelData);
+      // TODO: Query real balance from TON blockchain using address
+      // TODO: Query transactions from backend or blockchain
+      // TODO: Query payment channels from backend
+      setBalance({ ton: 0, usd: 0, locked: 0, available: 0 });
+      setTransactions([]);
+      setChannels([]);
     } catch (error) {
       console.error('Failed to load wallet:', error);
     } finally {
