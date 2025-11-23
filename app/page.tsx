@@ -10,7 +10,7 @@ import { MetricCard } from '@/components/data-display/MetricCard';
 import { Button } from '@/components/ui/button';
 import { RequireWallet } from '@/components/RequireWallet';
 import { Globe, Clock, Wallet as WalletIcon, TrendingUp, Server, Award } from 'lucide-react';
-import { mockApi } from '@/lib/mock-api';
+import { api } from '@/lib/api';
 import { VPNNode, VPNSession } from '@/types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -43,13 +43,13 @@ export default function Home() {
     const loadDashboard = async () => {
       try {
         // Always load nodes for browsing (no auth required)
-        const nodes = await mockApi.getNodes();
-        setRecommendedNodes(nodes.data.slice(0, 3));
+        const nodes = await api.getNodes();
+        setRecommendedNodes(nodes.slice(0, 3));
 
         // Only load user-specific data if wallet is connected
         if (walletAddress) {
-          const sessions = await mockApi.getActiveSessions();
-          setActiveSession(sessions[0] || null);
+          const session = await api.getActiveSession(walletAddress);
+          setActiveSession(session);
 
           // Load mock user stats only when authenticated
           setUserStats({
@@ -79,8 +79,13 @@ export default function Home() {
   }, [walletAddress]); // Re-run when wallet connection changes
 
   const handleDisconnect = async () => {
-    // Simulate disconnect
-    setActiveSession(null);
+    if (!activeSession) return;
+    try {
+      await api.stopSession(activeSession.id);
+      setActiveSession(null);
+    } catch (error) {
+      console.error('Failed to disconnect:', error);
+    }
   };
 
   const handleQuickConnect = () => {

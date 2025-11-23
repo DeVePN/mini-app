@@ -73,9 +73,11 @@ class APIClient {
   async startSession(data: {
     userWallet: string;
     nodeId: string;
+    depositAmount: number;
+    transactionBoc?: string;
   }): Promise<Session> {
     const response = await this.client.post('/session/start', data);
-    return response.data;
+    return response.data.session;
   }
 
   async stopSession(sessionId: string): Promise<{ success: boolean; session: Session }> {
@@ -95,7 +97,7 @@ class APIClient {
 
   async getActiveSession(userWallet: string): Promise<Session | null> {
     const response = await this.client.get(`/session/active/${userWallet}`);
-    return response.data;
+    return response.data.session;
   }
 
   // Stats endpoints

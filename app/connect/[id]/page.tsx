@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { StatusBadge } from '@/components/feedback/StatusBadge';
-import { mockApi } from '@/lib/mock-api';
+import { api } from '@/lib/api';
 import { VPNNode } from '@/types';
 import Link from 'next/link';
 import {
@@ -53,7 +53,7 @@ export default function ConnectToNodePage() {
 
   const loadNodeDetails = async () => {
     try {
-      const nodeData = await mockApi.getNodeById(nodeId);
+      const nodeData = await api.getNode(nodeId);
       setNode(nodeData);
     } catch (error) {
       console.error('Failed to load node:', error);
@@ -73,16 +73,37 @@ export default function ConnectToNodePage() {
 
     setConnecting(true);
     try {
-      // Simulate connection process
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // 1. Send TON Transaction
+      const amountNano = (depositAmount[0] * 1e9).toString();
 
-      // Create mock session
-      const session = await mockApi.createSession(nodeId, depositAmount[0]);
+      const transaction = {
+        validUntil: Math.floor(Date.now() / 1000) + 600, // 10 minutes
+        messages: [
+          {
+            address: node.provider.walletAddress, // Send to provider's wallet
+            amount: amountNano,
+            payload: '', // Optional: Add comment or opcode
+          },
+        ],
+      };
 
-      // Redirect to session page
+      const result = await tonConnectUI.sendTransaction(transaction);
+
+      // 2. Call Backend to Start Session
+      // We pass the BOC (Bag of Cells) as proof of transaction
+      const session = await api.startSession({
+        userWallet: walletAddress,
+        nodeId: nodeId,
+        depositAmount: depositAmount[0],
+        transactionBoc: result.boc,
+      });
+
+      // 3. Redirect to session page
       router.push(`/session/${session.id}`);
     } catch (error) {
       console.error('Connection failed:', error);
+      // TODO: Show error toast
+    } finally {
       setConnecting(false);
     }
   };
