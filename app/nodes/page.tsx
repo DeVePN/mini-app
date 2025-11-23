@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { mockApi } from '@/lib/mock-api';
+import { api } from '@/lib/api';
 import { VPNNode } from '@/types';
 import { RefreshCw, Search, Filter, Grid, List, Map } from 'lucide-react';
 
@@ -46,8 +46,8 @@ export default function NodesPage() {
 
   const loadNodes = async () => {
     try {
-      const response = await mockApi.getNodes();
-      setNodes(response.data);
+      const nodes = await api.getNodes();
+      setNodes(nodes);
     } catch (error) {
       console.error('Failed to load nodes:', error);
     } finally {

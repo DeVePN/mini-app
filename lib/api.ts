@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import { VPNNode, VPNSession as Session } from '@/types';
+import { transformBackendNodes, transformBackendNode, transformBackendSession } from './data-transformer';
 
 class APIClient {
   private client: AxiosInstance;
@@ -48,12 +49,14 @@ class APIClient {
   // Node endpoints
   async getNodes(): Promise<VPNNode[]> {
     const response = await this.client.get('/nodes');
-    return response.data;
+    // Transform backend data to frontend format
+    return transformBackendNodes(response.data);
   }
 
   async getNode(id: string): Promise<VPNNode> {
     const response = await this.client.get(`/nodes/${id}`);
-    return response.data;
+    // Transform backend data to frontend format
+    return transformBackendNode(response.data);
   }
 
   async registerNode(data: {
