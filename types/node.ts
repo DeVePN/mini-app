@@ -1,7 +1,7 @@
 // VPN Node Types
 
 export type SpeedTier = 'fast' | 'medium' | 'slow';
-export type NodeStatus = 'online' | 'offline' | 'maintenance';
+export type NodeStatus = 'online' | 'offline' | 'maintenance' | 'busy';
 
 export interface NodeLocation {
   country: string;

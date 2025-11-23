@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Circle } from 'lucide-react';
 
-type Status = 'online' | 'offline' | 'active' | 'pending' | 'completed' | 'failed' | 'maintenance' | 'connected' | 'disconnected' | 'confirmed';
+type Status = 'online' | 'offline' | 'active' | 'pending' | 'completed' | 'failed' | 'maintenance' | 'connected' | 'disconnected' | 'confirmed' | 'busy';
 
 const statusConfig: Record<Status, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; color: string }> = {
   online: { label: 'Online', variant: 'default', color: 'text-green-500' },
@@ -15,6 +15,7 @@ const statusConfig: Record<Status, { label: string; variant: 'default' | 'second
   confirmed: { label: 'Confirmed', variant: 'default', color: 'text-green-500' },
   failed: { label: 'Failed', variant: 'destructive', color: 'text-red-500' },
   maintenance: { label: 'Maintenance', variant: 'outline', color: 'text-orange-500' },
+  busy: { label: 'Busy', variant: 'outline', color: 'text-yellow-500' },
 };
 
 interface StatusBadgeProps {
