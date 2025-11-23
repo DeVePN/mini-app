@@ -121,7 +121,14 @@ export function transformBackendNode(backendNode: any): VPNNode {
       current: current_load,
       max: 100,
     },
-    provider: provider_address || undefined,
+    provider: provider_address ? {
+      walletAddress: provider_address,
+      reputationScore: score,
+      stakeAmount: 0,
+      nodesOperated: 1,
+      joinDate: new Date().toISOString(),
+      verified: false
+    } : undefined,
     features: [],
     isFavorite: false,
     score,
@@ -250,6 +257,6 @@ export function transformFrontendNodeToBackend(frontendNode: Partial<VPNNode>): 
     price_per_minute: pricePerMinuteNano,
     bandwidth_mbps: performance?.bandwidth || 1000,
     version: specs?.version || '1.0.0',
-    provider_address: provider || null,
+    provider_address: provider?.walletAddress || null,
   };
 }

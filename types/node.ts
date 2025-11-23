@@ -89,7 +89,7 @@ export interface VPNNode {
     current: number;
     max: number;
   };
-  provider?: string;
+  provider?: ProviderInfo;
   features?: string[];
   isFavorite?: boolean;
   score?: number;

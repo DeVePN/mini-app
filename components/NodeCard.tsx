@@ -17,7 +17,7 @@ export function NodeCard({ node, onClick }: NodeCardProps) {
             <span className="text-2xl">{getCountryFlag(node.location.countryCode)}</span>
             <div>
               <h3 className="font-semibold text-lg">{node.location.country}</h3>
-              <p className="text-sm text-gray-500">{formatAddress(node.provider.walletAddress)}</p>
+              <p className="text-sm text-gray-500">{node.provider?.walletAddress ? formatAddress(node.provider.walletAddress) : 'Unknown'}</p>
             </div>
           </div>
 
@@ -39,7 +39,7 @@ export function NodeCard({ node, onClick }: NodeCardProps) {
           <div className="text-lg font-bold text-green-600">
             {formatTON(node.pricing.pricePerHour)} TON/hr
           </div>
-          {node.provider.reputationScore !== undefined && (
+          {node.provider?.reputationScore !== undefined && (
             <div className="text-sm text-gray-600 mt-1">
               ⭐ {node.provider.reputationScore}
             </div>

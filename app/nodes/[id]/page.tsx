@@ -136,12 +136,12 @@ export default function NodeDetailPage() {
               </div>
             </div>
 
-            {node.provider.reputationScore !== undefined && (
+            {node.provider?.reputationScore !== undefined && (
               <div className="flex items-start gap-3">
                 <Star className="w-5 h-5 text-green-500 mt-0.5" />
                 <div>
                   <p className="text-sm text-gray-600">Reputation</p>
-                  <p className="text-lg font-semibold">{node.provider.reputationScore} / 100</p>
+                  <p className="text-lg font-semibold">{node.provider?.reputationScore} / 100</p>
                 </div>
               </div>
             )}

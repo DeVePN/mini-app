@@ -18,6 +18,8 @@ export const mockNodes: VPNNode[] = [
     speedTier: 'fast',
     pricing: {
       pricePerHour: 0.05,
+      pricePerGB: 0.01,
+      currency: 'TON',
       estimatedDailyCost: 1.2,
       estimatedMonthlyCost: 36,
       depositRequired: 0.5,
@@ -72,6 +74,8 @@ export const mockNodes: VPNNode[] = [
     speedTier: 'fast',
     pricing: {
       pricePerHour: 0.04,
+      pricePerGB: 0.008,
+      currency: 'TON',
       estimatedDailyCost: 0.96,
       estimatedMonthlyCost: 28.8,
       depositRequired: 0.4,
@@ -126,6 +130,8 @@ export const mockNodes: VPNNode[] = [
     speedTier: 'medium',
     pricing: {
       pricePerHour: 0.03,
+      pricePerGB: 0.005,
+      currency: 'TON',
       estimatedDailyCost: 0.72,
       estimatedMonthlyCost: 21.6,
       depositRequired: 0.3,

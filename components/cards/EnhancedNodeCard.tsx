@@ -39,7 +39,7 @@ export function EnhancedNodeCard({
                 {node.name}
               </Link>
               <StatusBadge status={node.status} showDot />
-              {node.provider.verified && <Badge variant="secondary" className="text-xs">✓</Badge>}
+              {node.provider?.verified && <Badge variant="secondary" className="text-xs">✓</Badge>}
             </div>
             <p className="text-sm text-muted-foreground">{node.location.city}, {node.location.country}</p>
             <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
@@ -141,7 +141,7 @@ export function EnhancedNodeCard({
             <p className="text-xs text-muted-foreground">Price</p>
             <p className="text-xl font-bold">{node.pricing.pricePerHour} TON/h</p>
           </div>
-          {node.provider.verified && (
+          {node.provider?.verified && (
             <Badge variant="secondary" className="gap-1">
               ✓ Verified
             </Badge>
