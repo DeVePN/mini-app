@@ -35,7 +35,7 @@ export default function NodesPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState<'price' | 'speed' | 'rating'>('rating');
-  const [priceRange, setPriceRange] = useState([0, 0.1]);
+  const [priceRange, setPriceRange] = useState([0, 1.0]);
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
   const [onlineOnly, setOnlineOnly] = useState(true);
 
@@ -193,7 +193,7 @@ export default function NodesPage() {
                 value={priceRange}
                 onValueChange={setPriceRange}
                 min={0}
-                max={0.2}
+                max={1.0}
                 step={0.01}
                 className="mb-2"
               />
