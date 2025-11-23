@@ -6,8 +6,11 @@ class APIClient {
   private client: AxiosInstance;
 
   constructor() {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+    const baseURL = backendUrl.endsWith('/api') ? backendUrl : `${backendUrl}/api`;
+
     this.client = axios.create({
-      baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001',
+      baseURL,
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json',
