@@ -110,6 +110,18 @@ class APIClient {
     return response.data;
   }
 
+  async getUserStats(walletAddress: string): Promise<{
+    totalSessions: number;
+    activeSessions: number;
+    totalDataUsed: number;
+    totalSpent: number;
+    totalDuration: number;
+    recentSessions: any[];
+  }> {
+    const response = await this.client.get(`/stats/user/${walletAddress}`);
+    return response.data.stats;
+  }
+
   // Expose client for custom requests (with automatic headers)
   get<T = any>(url: string, config?: any) {
     return this.client.get<T>(url, config);

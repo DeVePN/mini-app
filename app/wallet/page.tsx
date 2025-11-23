@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { mockApi } from '@/lib/mock-api';
+import { api } from '@/lib/api';
 import { Transaction, PaymentChannel } from '@/types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -24,6 +25,7 @@ export default function WalletPage() {
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [channels, setChannels] = useState<PaymentChannel[]>([]);
+  const [userStats, setUserStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   // Derived balance state
@@ -36,10 +38,17 @@ export default function WalletPage() {
 
   useEffect(() => {
     loadWalletData();
-  }, []);
+  }, [walletAddress]);
 
   const loadWalletData = async () => {
     try {
+      if (walletAddress) {
+        // Fetch real user stats
+        const stats = await api.getUserStats(walletAddress);
+        setUserStats(stats);
+      }
+
+      // Still using mock for transactions and channels for now
       const [txData, channelData] = await Promise.all([
         mockApi.getTransactions(),
         mockApi.getPaymentChannels(),
