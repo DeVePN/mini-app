@@ -93,16 +93,16 @@ export interface VPNNode {
   features?: string[];
   isFavorite?: boolean;
   score?: number;
-  // Legacy fields for compatibility
-  speedTier?: SpeedTier;
-  specifications?: NodeSpecifications;
-  statistics?: NodeStatistics;
-  rating?: number;
-  reviewCount?: number;
-  reviews?: NodeReview[];
-  activeUsers?: number;
-  createdAt?: string;
-  updatedAt?: string;
+  // Required fields that transformer always provides
+  rating: number;
+  reviewCount: number;
+  reviews: NodeReview[];
+  activeUsers: number;
+  speedTier: SpeedTier;
+  specifications: NodeSpecifications;
+  statistics: NodeStatistics;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface NodeFilters {
