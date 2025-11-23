@@ -6,7 +6,10 @@ class APIClient {
   private client: AxiosInstance;
 
   constructor() {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+    let backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+    if (!backendUrl.startsWith('http')) {
+      backendUrl = `https://${backendUrl}`;
+    }
     const baseURL = backendUrl.endsWith('/api') ? backendUrl : `${backendUrl}/api`;
 
     this.client = axios.create({
