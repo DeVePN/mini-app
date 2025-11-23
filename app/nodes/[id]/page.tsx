@@ -92,7 +92,12 @@ export default function NodeDetailPage() {
             <span className="text-4xl">{getCountryFlag(node.location.countryCode)}</span>
             <div>
               <h1 className="text-2xl font-bold">{node.location.country}</h1>
-              <p className="text-sm text-gray-500">{formatAddress(node.provider.walletAddress)}</p>
+              <p className="text-sm text-gray-500">
+                {node.provider?.walletAddress
+                  ? formatAddress(node.provider.walletAddress)
+                  : "Unknown provider"}
+              </p>
+
             </div>
           </div>
         </div>
