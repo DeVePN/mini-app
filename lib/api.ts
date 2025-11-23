@@ -20,6 +20,25 @@ class APIClient {
         if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
           config.headers['X-Telegram-Init-Data'] = window.Telegram.WebApp.initData;
         }
+
+        // Add wallet address for authentication (if available)
+        // Try to get it from TON Connect state in localStorage
+        if (typeof window !== 'undefined') {
+          try {
+            const tonConnectState = localStorage.getItem('ton-connect-ui_wallet-info');
+            if (tonConnectState) {
+              const walletInfo = JSON.parse(tonConnectState);
+              const walletAddress = walletInfo?.account?.address;
+              if (walletAddress) {
+                config.headers['X-Wallet-Address'] = walletAddress;
+              }
+            }
+          } catch (err) {
+            // Silently fail if we can't get wallet address
+            console.debug('Could not get wallet address from TON Connect state');
+          }
+        }
+
         return config;
       },
       (error) => Promise.reject(error)
@@ -87,6 +106,23 @@ class APIClient {
   }> {
     const response = await this.client.get(`/nodes/${nodeId}/stats`);
     return response.data;
+  }
+
+  // Expose client for custom requests (with automatic headers)
+  get<T = any>(url: string, config?: any) {
+    return this.client.get<T>(url, config);
+  }
+
+  post<T = any>(url: string, data?: any, config?: any) {
+    return this.client.post<T>(url, data, config);
+  }
+
+  put<T = any>(url: string, data?: any, config?: any) {
+    return this.client.put<T>(url, data, config);
+  }
+
+  delete<T = any>(url: string, config?: any) {
+    return this.client.delete<T>(url, config);
   }
 }
 

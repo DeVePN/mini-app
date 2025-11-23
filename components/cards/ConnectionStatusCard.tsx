@@ -3,6 +3,7 @@
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/feedback/StatusBadge';
+import { RequireWallet } from '@/components/RequireWallet';
 import { Globe, ArrowUpDown, Clock, Zap } from 'lucide-react';
 import { VPNSession } from '@/types';
 import Link from 'next/link';
@@ -34,9 +35,14 @@ export function ConnectionStatusCard({ session, onDisconnect, onQuickConnect }: 
               <Button>Browse Nodes</Button>
             </Link>
             {onQuickConnect && (
-              <Button variant="outline" onClick={onQuickConnect}>
-                Quick Connect
-              </Button>
+              <RequireWallet
+                modalTitle="Connect Wallet to Use VPN"
+                modalDescription="Connect your TON wallet to start a VPN session."
+              >
+                <Button variant="outline" onClick={onQuickConnect}>
+                  Quick Connect
+                </Button>
+              </RequireWallet>
             )}
           </div>
         </div>

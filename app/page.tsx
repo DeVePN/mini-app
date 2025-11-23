@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTonAddress } from '@tonconnect/ui-react';
 import { AppLayout } from '@/components/navigation/AppLayout';
 import { ConnectionStatusCard } from '@/components/cards/ConnectionStatusCard';
 import { BalanceCard } from '@/components/cards/BalanceCard';
 import { EnhancedNodeCard } from '@/components/cards/EnhancedNodeCard';
 import { MetricCard } from '@/components/data-display/MetricCard';
 import { Button } from '@/components/ui/button';
+import { RequireWallet } from '@/components/RequireWallet';
 import { Globe, Clock, Wallet as WalletIcon, TrendingUp, Server, Award } from 'lucide-react';
 import { mockApi } from '@/lib/mock-api';
 import { VPNNode, VPNSession } from '@/types';
@@ -15,23 +17,53 @@ import { useRouter } from 'next/navigation';
 
 export default function Home() {
   const router = useRouter();
+  const walletAddress = useTonAddress();
   const [activeSession, setActiveSession] = useState<VPNSession | null>(null);
   const [recommendedNodes, setRecommendedNodes] = useState<VPNNode[]>([]);
   const [balance, setBalance] = useState({ ton: 0, usd: 0, locked: 0, available: 0 });
   const [loading, setLoading] = useState(true);
+  const [userStats, setUserStats] = useState({
+    totalSessions: 0,
+    dataUsed: '0 GB',
+    totalSpent: '0 TON',
+    favoriteNodes: 0
+  });
 
   useEffect(() => {
     const loadDashboard = async () => {
       try {
-        const [sessions, nodes, walletBalance] = await Promise.all([
-          mockApi.getActiveSessions(),
-          mockApi.getNodes(),
-          mockApi.getWalletBalance(),
-        ]);
-
-        setActiveSession(sessions[0] || null);
+        // Always load nodes for browsing (no auth required)
+        const nodes = await mockApi.getNodes();
         setRecommendedNodes(nodes.data.slice(0, 3));
-        setBalance(walletBalance);
+
+        // Only load user-specific data if wallet is connected
+        if (walletAddress) {
+          const [sessions, walletBalance] = await Promise.all([
+            mockApi.getActiveSessions(),
+            mockApi.getWalletBalance(),
+          ]);
+
+          setActiveSession(sessions[0] || null);
+          setBalance(walletBalance);
+
+          // Load mock user stats only when authenticated
+          setUserStats({
+            totalSessions: 156,
+            dataUsed: '245 GB',
+            totalSpent: '12.5 TON',
+            favoriteNodes: 5
+          });
+        } else {
+          // Reset to empty state when no wallet
+          setActiveSession(null);
+          setBalance({ ton: 0, usd: 0, locked: 0, available: 0 });
+          setUserStats({
+            totalSessions: 0,
+            dataUsed: '0 GB',
+            totalSpent: '0 TON',
+            favoriteNodes: 0
+          });
+        }
       } catch (error) {
         console.error('Failed to load dashboard:', error);
       } finally {
@@ -40,7 +72,7 @@ export default function Home() {
     };
 
     loadDashboard();
-  }, []);
+  }, [walletAddress]); // Re-run when wallet connection changes
 
   const handleDisconnect = async () => {
     // Simulate disconnect
@@ -96,26 +128,28 @@ export default function Home() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <MetricCard
             title="Total Sessions"
-            value="156"
+            value={walletAddress ? userStats.totalSessions.toString() : '—'}
             icon={Clock}
-            trend={{ value: 12, isPositive: true }}
+            trend={walletAddress ? { value: 12, isPositive: true } : undefined}
+            subtitle={!walletAddress ? 'Connect wallet' : undefined}
           />
           <MetricCard
             title="Data Used"
-            value="245 GB"
+            value={walletAddress ? userStats.dataUsed : '—'}
             icon={TrendingUp}
-            subtitle="This month"
+            subtitle={walletAddress ? 'This month' : 'Connect wallet'}
           />
           <MetricCard
             title="Total Spent"
-            value="12.5 TON"
+            value={walletAddress ? userStats.totalSpent : '—'}
             icon={WalletIcon}
-            subtitle="All time"
+            subtitle={walletAddress ? 'All time' : 'Connect wallet'}
           />
           <MetricCard
             title="Favorite Nodes"
-            value="5"
+            value={walletAddress ? userStats.favoriteNodes.toString() : '—'}
             icon={Award}
+            subtitle={!walletAddress ? 'Connect wallet' : undefined}
           />
         </div>
 
@@ -124,24 +158,39 @@ export default function Home() {
 
         {/* Quick Actions */}
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {/* Browse Nodes - No auth required */}
           <Link href="/nodes">
             <Button variant="outline" className="w-full h-20 flex-col gap-2">
               <Globe className="h-6 w-6" />
               <span>Browse Nodes</span>
             </Button>
           </Link>
-          <Link href="/sessions">
-            <Button variant="outline" className="w-full h-20 flex-col gap-2">
-              <Clock className="h-6 w-6" />
-              <span>My Sessions</span>
-            </Button>
-          </Link>
-          <Link href="/provider/start">
-            <Button variant="outline" className="w-full h-20 flex-col gap-2">
-              <Server className="h-6 w-6" />
-              <span>Earn as Provider</span>
-            </Button>
-          </Link>
+
+          {/* My Sessions - Requires wallet */}
+          <RequireWallet
+            modalTitle="Connect Wallet to View Sessions"
+            modalDescription="Connect your TON wallet to view your VPN session history."
+          >
+            <Link href="/sessions" className="block">
+              <Button variant="outline" className="w-full h-20 flex-col gap-2">
+                <Clock className="h-6 w-6" />
+                <span>My Sessions</span>
+              </Button>
+            </Link>
+          </RequireWallet>
+
+          {/* Earn as Provider - Requires wallet */}
+          <RequireWallet
+            modalTitle="Connect Wallet to Become Provider"
+            modalDescription="Connect your TON wallet to register as a VPN provider and start earning."
+          >
+            <Link href="/provider/start" className="block">
+              <Button variant="outline" className="w-full h-20 flex-col gap-2">
+                <Server className="h-6 w-6" />
+                <span>Earn as Provider</span>
+              </Button>
+            </Link>
+          </RequireWallet>
         </div>
 
         {/* Recommended Nodes */}

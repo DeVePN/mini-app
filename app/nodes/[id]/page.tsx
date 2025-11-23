@@ -9,6 +9,7 @@ import { telegram } from '@/lib/telegram';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { Loader } from '@/components/Loader';
+import { RequireWallet } from '@/components/RequireWallet';
 import { formatTON, formatAddress, getCountryFlag } from '@/utils/format';
 import {
   ArrowLeft,
@@ -49,11 +50,6 @@ export default function NodeDetailPage() {
   }, [router]);
 
   const handleConnect = () => {
-    if (!address) {
-      telegram.showAlert('Please connect your TON wallet first');
-      return;
-    }
-
     // Redirect to connection setup page
     router.push(`/connect/${nodeId}`);
   };
@@ -207,21 +203,19 @@ export default function NodeDetailPage() {
 
         {/* Connect Button */}
         <div className="sticky bottom-4">
-          <Button
-            className="w-full"
-            size="lg"
-            onClick={handleConnect}
-            disabled={!node.isActive || !address}
+          <RequireWallet
+            modalTitle="Connect Wallet to Start VPN Session"
+            modalDescription="You need to connect your TON wallet to start a VPN session with this node."
           >
-            {!address ? 'Connect Wallet First' :
-             !node.isActive ? 'Node Inactive' :
-             'Connect to VPN'}
-          </Button>
-          {!address && (
-            <p className="text-center text-sm text-gray-600 mt-2">
-              Please connect your TON wallet to continue
-            </p>
-          )}
+            <Button
+              className="w-full"
+              size="lg"
+              onClick={handleConnect}
+              disabled={!node.isActive}
+            >
+              {!node.isActive ? 'Node Inactive' : 'Connect to VPN'}
+            </Button>
+          </RequireWallet>
         </div>
       </div>
     </div>

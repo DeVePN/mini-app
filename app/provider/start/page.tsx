@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
+import { RequireWallet } from '@/components/RequireWallet';
 import { useState } from 'react';
 import Link from 'next/link';
 import { CheckCircle, DollarSign, Shield, Users, TrendingUp, Server } from 'lucide-react';
@@ -151,11 +152,16 @@ export default function ProviderStartPage() {
 
         {/* CTA */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href="/provider/register">
-            <Button size="lg" className="w-full sm:w-auto">
-              Start Setup
-            </Button>
-          </Link>
+          <RequireWallet
+            modalTitle="Connect Wallet to Become a Provider"
+            modalDescription="You need to connect your TON wallet to register as a VPN provider and receive earnings."
+          >
+            <Link href="/provider/register">
+              <Button size="lg" className="w-full sm:w-auto">
+                Start Setup
+              </Button>
+            </Link>
+          </RequireWallet>
           <Link href="/help/provider">
             <Button size="lg" variant="outline" className="w-full sm:w-auto">
               Learn More

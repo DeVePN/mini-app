@@ -1,5 +1,17 @@
 // User and Profile Types
 
+/**
+ * Basic user from backend (wallet auth)
+ */
+export interface BasicUserProfile {
+  id: string;
+  wallet_address: string;
+  username?: string | null;
+  telegram_id?: string | null;
+  created_at: string;
+  last_login?: string;
+}
+
 export type AccountType = 'consumer' | 'provider' | 'both';
 export type ThemeMode = 'light' | 'dark' | 'auto';
 export type DataUnit = 'MB-GB' | 'GB-TB';

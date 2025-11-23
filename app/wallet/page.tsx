@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
 import { AppLayout } from '@/components/navigation/AppLayout';
 import { BalanceCard } from '@/components/cards/BalanceCard';
 import { TransactionCard } from '@/components/cards/TransactionCard';
@@ -11,10 +12,12 @@ import { mockApi } from '@/lib/mock-api';
 import { Transaction, PaymentChannel } from '@/types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowUpRight, ArrowDownLeft, Layers } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, Layers, Wallet } from 'lucide-react';
 
 export default function WalletPage() {
   const router = useRouter();
+  const walletAddress = useTonAddress();
+  const [tonConnectUI] = useTonConnectUI();
   const [balance, setBalance] = useState({ ton: 0, usd: 0, locked: 0, available: 0 });
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [channels, setChannels] = useState<PaymentChannel[]>([]);
@@ -54,6 +57,31 @@ export default function WalletPage() {
   const handleViewExplorer = (hash: string) => {
     window.open(`https://testnet.tonscan.org/tx/${hash}`, '_blank');
   };
+
+  // Show connect wallet prompt if no wallet is connected
+  if (!walletAddress) {
+    return (
+      <AppLayout balance={balance}>
+        <div className="container max-w-4xl mx-auto px-4 py-8">
+          <Card className="p-12 text-center space-y-6">
+            <div className="inline-flex p-6 rounded-full bg-blue-100 dark:bg-blue-900">
+              <Wallet className="h-12 w-12 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold">Connect Your Wallet</h2>
+              <p className="text-muted-foreground max-w-md mx-auto">
+                Connect your TON wallet to view your balance, transactions, and payment channels.
+              </p>
+            </div>
+            <Button size="lg" onClick={() => tonConnectUI.openModal()}>
+              <Wallet className="h-5 w-5 mr-2" />
+              Connect TON Wallet
+            </Button>
+          </Card>
+        </div>
+      </AppLayout>
+    );
+  }
 
   if (loading) {
     return (

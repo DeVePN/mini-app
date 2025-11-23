@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTonAddress } from '@tonconnect/ui-react';
 import { AppLayout } from '@/components/navigation/AppLayout';
 import { EnhancedNodeCard } from '@/components/cards/EnhancedNodeCard';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ import { RefreshCw, Search, Filter, Grid, List, Map } from 'lucide-react';
 
 export default function NodesPage() {
   const router = useRouter();
+  const walletAddress = useTonAddress();
   const [nodes, setNodes] = useState<VPNNode[]>([]);
   const [filteredNodes, setFilteredNodes] = useState<VPNNode[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,8 +34,11 @@ export default function NodesPage() {
 
   useEffect(() => {
     loadNodes();
-    loadBalance();
-  }, []);
+    // Only load balance if wallet is connected
+    if (walletAddress) {
+      loadBalance();
+    }
+  }, [walletAddress]);
 
   useEffect(() => {
     filterAndSortNodes();

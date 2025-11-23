@@ -2,6 +2,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/feedback/StatusBadge';
+import { RequireWallet } from '@/components/RequireWallet';
 import { Star, Heart, Users, Zap } from 'lucide-react';
 import { VPNNode } from '@/types';
 import { cn } from '@/lib/utils';
@@ -70,9 +71,14 @@ export function EnhancedNodeCard({
             >
               <Heart className={cn('h-4 w-4', node.isFavorite && 'fill-red-500 text-red-500')} />
             </Button>
-            <Button onClick={() => onConnect?.(node.id)}>
-              Connect
-            </Button>
+            <RequireWallet
+              modalTitle="Connect Wallet to Use VPN"
+              modalDescription="Connect your TON wallet to start a VPN session with this node."
+            >
+              <Button onClick={() => onConnect?.(node.id)}>
+                Connect
+              </Button>
+            </RequireWallet>
           </div>
         </div>
       </Card>
@@ -141,9 +147,14 @@ export function EnhancedNodeCard({
             </Badge>
           )}
         </div>
-        <Button className="w-full" onClick={() => onConnect?.(node.id)}>
-          Connect
-        </Button>
+        <RequireWallet
+          modalTitle="Connect Wallet to Use VPN"
+          modalDescription="Connect your TON wallet to start a VPN session with this node."
+        >
+          <Button className="w-full" onClick={() => onConnect?.(node.id)}>
+            Connect
+          </Button>
+        </RequireWallet>
       </div>
     </Card>
   );

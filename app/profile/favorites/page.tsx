@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTonAddress } from '@tonconnect/ui-react';
 import { AppLayout } from '@/components/navigation/AppLayout';
 import { EnhancedNodeCard } from '@/components/cards/EnhancedNodeCard';
 import { Card } from '@/components/ui/card';
@@ -13,24 +14,32 @@ import { ArrowLeft, Heart } from 'lucide-react';
 
 export default function FavoritesPage() {
   const router = useRouter();
+  const walletAddress = useTonAddress();
   const [favorites, setFavorites] = useState<VPNNode[]>([]);
   const [balance, setBalance] = useState({ ton: 0, usd: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadFavorites();
-  }, []);
+  }, [walletAddress]);
 
   const loadFavorites = async () => {
     try {
-      const [nodes, walletBalance] = await Promise.all([
-        mockApi.getNodes(),
-        mockApi.getWalletBalance(),
-      ]);
-      // Filter only favorites
-      const favoriteNodes = nodes.data.filter(node => node.isFavorite);
-      setFavorites(favoriteNodes);
-      setBalance(walletBalance);
+      if (walletAddress) {
+        // Only load data if wallet is connected
+        const [nodes, walletBalance] = await Promise.all([
+          mockApi.getNodes(),
+          mockApi.getWalletBalance(),
+        ]);
+        // Filter only favorites
+        const favoriteNodes = nodes.data.filter(node => node.isFavorite);
+        setFavorites(favoriteNodes);
+        setBalance(walletBalance);
+      } else {
+        // Set empty state when no wallet
+        setFavorites([]);
+        setBalance({ ton: 0, usd: 0 });
+      }
     } catch (error) {
       console.error('Failed to load favorites:', error);
     } finally {
@@ -78,9 +87,13 @@ export default function FavoritesPage() {
             <div className="inline-flex p-4 rounded-full bg-muted mb-4">
               <Heart className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">No Favorite Nodes Yet</h3>
+            <h3 className="text-lg font-semibold mb-2">
+              {walletAddress ? 'No Favorite Nodes Yet' : 'No Favorites'}
+            </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Save your preferred nodes for quick access
+              {walletAddress
+                ? 'Save your preferred nodes for quick access'
+                : 'Connect your wallet to view favorite nodes'}
             </p>
             <Link href="/nodes">
               <Button>Browse Nodes</Button>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
 import { AppLayout } from '@/components/navigation/AppLayout';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,13 +20,16 @@ import {
   Shield,
   Zap,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Wallet
 } from 'lucide-react';
 
 export default function ConnectToNodePage() {
   const router = useRouter();
   const params = useParams();
   const nodeId = params.id as string;
+  const walletAddress = useTonAddress();
+  const [tonConnectUI] = useTonConnectUI();
 
   const [node, setNode] = useState<VPNNode | null>(null);
   const [balance, setBalance] = useState({ ton: 0, usd: 0 });
@@ -35,16 +39,20 @@ export default function ConnectToNodePage() {
 
   useEffect(() => {
     loadNodeDetails();
-  }, [nodeId]);
+  }, [nodeId, walletAddress]);
 
   const loadNodeDetails = async () => {
     try {
-      const [nodeData, walletBalance] = await Promise.all([
-        mockApi.getNodeById(nodeId),
-        mockApi.getWalletBalance(),
-      ]);
+      const nodeData = await mockApi.getNodeById(nodeId);
       setNode(nodeData);
-      setBalance(walletBalance);
+
+      // Only load balance if wallet is connected
+      if (walletAddress) {
+        const walletBalance = await mockApi.getWalletBalance();
+        setBalance(walletBalance);
+      } else {
+        setBalance({ ton: 0, usd: 0 });
+      }
     } catch (error) {
       console.error('Failed to load node:', error);
     } finally {
@@ -53,6 +61,12 @@ export default function ConnectToNodePage() {
   };
 
   const handleConnect = async () => {
+    // Check wallet connection first
+    if (!walletAddress) {
+      tonConnectUI.openModal();
+      return;
+    }
+
     if (!node) return;
 
     setConnecting(true);
@@ -287,12 +301,17 @@ export default function ConnectToNodePage() {
           <Button
             className="flex-1"
             onClick={handleConnect}
-            disabled={connecting || depositAmount[0] > balance.ton || depositAmount[0] < node.pricing.depositRequired}
+            disabled={connecting || (walletAddress && (depositAmount[0] > balance.ton || depositAmount[0] < node.pricing.depositRequired))}
           >
             {connecting ? (
               <>
                 <span className="animate-spin mr-2">⏳</span>
                 Connecting...
+              </>
+            ) : !walletAddress ? (
+              <>
+                <Wallet className="h-4 w-4 mr-2" />
+                Connect Wallet
               </>
             ) : (
               'Start Connection'

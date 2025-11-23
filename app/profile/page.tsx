@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTonAddress } from '@tonconnect/ui-react';
 import { AppLayout } from '@/components/navigation/AppLayout';
 import { MetricCard } from '@/components/data-display/MetricCard';
 import { Card } from '@/components/ui/card';
@@ -10,26 +11,54 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { mockApi } from '@/lib/mock-api';
 import { UserProfile } from '@/types';
 import Link from 'next/link';
-import { Settings, Heart, Clock, Database, Trophy } from 'lucide-react';
+import { Settings, Heart, Clock, Database, Trophy, User } from 'lucide-react';
 
 export default function ProfilePage() {
+  const walletAddress = useTonAddress();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [balance, setBalance] = useState({ ton: 0, usd: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadProfile();
-  }, []);
+  }, [walletAddress]);
 
   const loadProfile = async () => {
     try {
-      const [userProfile, walletBalance] = await Promise.all([
-        mockApi.getUserProfile(),
-        mockApi.getWalletBalance(),
-      ]);
+      if (walletAddress) {
+        // Only load data if wallet is connected
+        const [userProfile, walletBalance] = await Promise.all([
+          mockApi.getUserProfile(),
+          mockApi.getWalletBalance(),
+        ]);
 
-      setProfile(userProfile);
-      setBalance(walletBalance);
+        setProfile(userProfile);
+        setBalance(walletBalance);
+      } else {
+        // Set empty profile state when no wallet
+        setProfile({
+          id: '',
+          telegramId: 0,
+          username: '',
+          firstName: '',
+          lastName: '',
+          accountType: 'consumer',
+          memberSince: new Date().toISOString(),
+          statistics: {
+            consumer: {
+              totalSessions: 0,
+              totalDuration: 0,
+              totalDataUsed: 0,
+              totalSpent: 0
+            }
+          },
+          preferences: {} as any,
+          achievements: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+        setBalance({ ton: 0, usd: 0 });
+      }
     } catch (error) {
       console.error('Failed to load profile:', error);
     } finally {
@@ -64,20 +93,22 @@ export default function ProfilePage() {
         <Card className="p-6">
           <div className="flex items-start gap-4">
             <Avatar className="h-20 w-20">
-              <AvatarFallback className="text-2xl bg-green-600 text-white">
-                {profile.firstName?.charAt(0) || 'U'}
+              <AvatarFallback className={`text-2xl ${walletAddress ? 'bg-green-600 text-white' : 'bg-muted text-muted-foreground'}`}>
+                {walletAddress && profile.firstName ? profile.firstName.charAt(0) : <User className="h-8 w-8" />}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
                 <h1 className="text-2xl font-bold">
-                  {profile.firstName} {profile.lastName}
+                  {walletAddress && profile.firstName ? `${profile.firstName} ${profile.lastName}` : '—'}
                 </h1>
                 <Badge>Consumer</Badge>
               </div>
-              <p className="text-muted-foreground">@{profile.username}</p>
+              <p className="text-muted-foreground">
+                @{walletAddress && profile.username ? profile.username : '—'}
+              </p>
               <p className="text-sm text-muted-foreground mt-2">
-                Member since {new Date(profile.memberSince).toLocaleDateString()}
+                {walletAddress ? `Member since ${new Date(profile.memberSince).toLocaleDateString()}` : 'Connect wallet to view profile'}
               </p>
             </div>
             <Link href="/profile/settings">
@@ -113,9 +144,9 @@ export default function ProfilePage() {
         </div>
 
         {/* Achievements */}
-        {profile.achievements.length > 0 && (
-          <div>
-            <h2 className="text-xl font-bold mb-4">Achievements</h2>
+        <div>
+          <h2 className="text-xl font-bold mb-4">Achievements</h2>
+          {walletAddress && profile.achievements.length > 0 ? (
             <div className="grid md:grid-cols-2 gap-4">
               {profile.achievements.map((achievement) => (
                 <Card key={achievement.id} className="p-4">
@@ -134,8 +165,15 @@ export default function ProfilePage() {
                 </Card>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <Card className="p-8 text-center">
+              <Trophy className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+              <p className="text-muted-foreground">
+                {walletAddress ? 'No achievements yet' : 'Connect your wallet to view achievements'}
+              </p>
+            </Card>
+          )}
+        </div>
 
         {/* Quick Links */}
         <div className="grid sm:grid-cols-2 gap-4">
