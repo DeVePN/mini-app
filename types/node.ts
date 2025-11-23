@@ -39,6 +39,8 @@ export interface NodeStatistics {
 
 export interface NodePricing {
   pricePerHour: number; // in TON
+  pricePerGB: number; // in TON
+  currency: string;
   estimatedDailyCost: number;
   estimatedMonthlyCost: number;
   depositRequired: number;
