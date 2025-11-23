@@ -1,7 +1,7 @@
 {
-  "url": "http://localhost:3000",
+  "url": "https://mini-app-e694-ab1u552mq-syuramoons-projects.vercel.app",
   "name": "DeVPN",
-  "iconUrl": "http://localhost:3000/icon-512x512.png",
-  "termsOfUseUrl": "http://localhost:3000/terms",
-  "privacyPolicyUrl": "http://localhost:3000/privacy"
+  "iconUrl": "https://mini-app-e694-ab1u552mq-syuramoons-projects.vercel.app/icon-512x512.png",
+  "termsOfUseUrl": "https://mini-app-e694-ab1u552mq-syuramoons-projects.vercel.app/terms",
+  "privacyPolicyUrl": "https://mini-app-e694-ab1u552mq-syuramoons-projects.vercel.app/privacy"
 }
