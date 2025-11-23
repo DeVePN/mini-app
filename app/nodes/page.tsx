@@ -14,14 +14,21 @@ import { Badge } from '@/components/ui/badge';
 import { api } from '@/lib/api';
 import { VPNNode } from '@/types';
 import { RefreshCw, Search, Filter, Grid, List, Map } from 'lucide-react';
+import { useWalletBalance } from '@/hooks/use-wallet-balance';
 
 export default function NodesPage() {
   const router = useRouter();
   const walletAddress = useTonAddress();
+  const { data: walletBalance } = useWalletBalance();
   const [nodes, setNodes] = useState<VPNNode[]>([]);
   const [filteredNodes, setFilteredNodes] = useState<VPNNode[]>([]);
   const [loading, setLoading] = useState(true);
-  const [balance, setBalance] = useState({ ton: 0, usd: 0 });
+
+  // Derived balance state
+  const balance = {
+    ton: walletBalance?.ton || 0,
+    usd: (walletBalance?.ton || 0) * 5
+  };
 
   // Filters and view state
   const [searchQuery, setSearchQuery] = useState('');
@@ -34,10 +41,6 @@ export default function NodesPage() {
 
   useEffect(() => {
     loadNodes();
-    // Only load balance if wallet is connected
-    if (walletAddress) {
-      loadBalance();
-    }
   }, [walletAddress]);
 
   useEffect(() => {
@@ -52,15 +55,6 @@ export default function NodesPage() {
       console.error('Failed to load nodes:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadBalance = async () => {
-    try {
-      const walletBalance = await mockApi.getWalletBalance();
-      setBalance(walletBalance);
-    } catch (error) {
-      console.error('Failed to load balance:', error);
     }
   };
 
