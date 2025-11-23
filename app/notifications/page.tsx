@@ -22,7 +22,7 @@ export default function NotificationsPage() {
                     </div>
                     <h2 className="text-xl font-semibold">No new notifications</h2>
                     <p className="text-muted-foreground max-w-sm">
-                        You're all caught up! We'll notify you when there are important updates about your VPN sessions or wallet.
+                        You&apos;re all caught up! We&apos;ll notify you when there are important updates about your VPN sessions or wallet.
                     </p>
                 </div>
             </div>
