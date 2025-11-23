@@ -7,6 +7,7 @@ export interface NodeLocation {
   country: string;
   countryCode: string;
   city: string;
+  region?: string;
   latitude?: number;
   longitude?: number;
 }
