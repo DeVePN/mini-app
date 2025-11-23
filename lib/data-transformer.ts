@@ -106,6 +106,8 @@ export function transformBackendNode(backendNode: any): VPNNode {
       pricePerHour: parseFloat(pricePerHour.toFixed(4)), // Round to 4 decimals
       pricePerGB: parseFloat(pricePerGbTon.toFixed(4)),
       currency: 'TON',
+      estimatedDailyCost: parseFloat((pricePerHour * 24).toFixed(4)), // 24 hours
+      estimatedMonthlyCost: parseFloat((pricePerHour * 24 * 30).toFixed(4)), // 30 days
       depositRequired: pricePerHour * 10, // 10 hours deposit
     },
     specs: {

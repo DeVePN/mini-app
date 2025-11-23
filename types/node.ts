@@ -71,18 +71,38 @@ export interface VPNNode {
   name: string;
   location: NodeLocation;
   status: NodeStatus;
-  speedTier: SpeedTier;
+  performance?: {
+    ping: number;
+    uptime: number;
+    bandwidth: number;
+    latency: number;
+  };
   pricing: NodePricing;
-  provider: ProviderInfo;
-  specifications: NodeSpecifications;
-  statistics: NodeStatistics;
-  rating: number;
-  reviewCount: number;
-  reviews: NodeReview[];
-  activeUsers: number;
+  specs?: {
+    protocol: string;
+    encryption: string;
+    ipAddress: string;
+    port: number;
+    version: string;
+  };
+  load?: {
+    current: number;
+    max: number;
+  };
+  provider?: string;
+  features?: string[];
   isFavorite?: boolean;
-  createdAt: string;
-  updatedAt: string;
+  score?: number;
+  // Legacy fields for compatibility
+  speedTier?: SpeedTier;
+  specifications?: NodeSpecifications;
+  statistics?: NodeStatistics;
+  rating?: number;
+  reviewCount?: number;
+  reviews?: NodeReview[];
+  activeUsers?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface NodeFilters {
