@@ -25,6 +25,8 @@ import {
 } from 'lucide-react';
 
 import { useWalletBalance } from '@/hooks/use-wallet-balance';
+import { beginCell } from '@ton/core';
+import { SESSION_MANAGER_ADDRESS } from '@/lib/contracts';
 
 export default function ConnectToNodePage() {
   const router = useRouter();
@@ -73,16 +75,30 @@ export default function ConnectToNodePage() {
 
     setConnecting(true);
     try {
-      // 1. Send TON Transaction
+      // 1. Construct StartSession Message Body
+      // OpCode: 0x... (We need the exact opcode from the compiled contract)
+      // For now, we'll use a placeholder or try to match the struct
+      // message StartSession { nodeId: Int as uint32; }
+
+      // NOTE: You must replace 0x12345678 with the actual OpCode for StartSession
+      // You can find this in the build output (wrappers) of your Tact contract
+      const OP_START_SESSION = 0x12345678;
+
+      const body = beginCell()
+        .storeUint(OP_START_SESSION, 32) // OpCode
+        .storeUint(0, 64) // QueryID (optional, but good practice in TON)
+        .storeUint(parseInt(nodeId), 32) // nodeId
+        .endCell();
+
       const amountNano = (depositAmount[0] * 1e9).toString();
 
       const transaction = {
         validUntil: Math.floor(Date.now() / 1000) + 600, // 10 minutes
         messages: [
           {
-            address: node.provider.walletAddress, // Send to provider's wallet
+            address: SESSION_MANAGER_ADDRESS, // Send to Contract
             amount: amountNano,
-            payload: '', // Optional: Add comment or opcode
+            payload: body.toBoc().toString('base64'), // Binary payload
           },
         ],
       };
@@ -90,7 +106,6 @@ export default function ConnectToNodePage() {
       const result = await tonConnectUI.sendTransaction(transaction);
 
       // 2. Call Backend to Start Session
-      // We pass the BOC (Bag of Cells) as proof of transaction
       const session = await api.startSession({
         userWallet: walletAddress,
         nodeId: nodeId,

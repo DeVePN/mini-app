@@ -48,8 +48,14 @@ export default function Home() {
 
         // Only load user-specific data if wallet is connected
         if (walletAddress) {
-          const session = await api.getActiveSession(walletAddress);
-          setActiveSession(session);
+          try {
+            const session = await api.getActiveSession(walletAddress);
+            setActiveSession(session);
+          } catch (err) {
+            console.warn('Failed to fetch active session:', err);
+            // Don't block the UI, just show no session
+            setActiveSession(null);
+          }
 
           // Load mock user stats only when authenticated
           setUserStats({
