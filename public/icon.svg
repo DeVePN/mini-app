@@ -1,0 +1,16 @@
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Green background -->
+  <rect width="512" height="512" fill="#16a34a" rx="64"/>
+
+  <!-- Shield icon -->
+  <path d="M256 80 L180 120 L180 240 C180 320 256 400 256 400 C256 400 332 320 332 240 L332 120 Z"
+        fill="none" stroke="white" stroke-width="16" stroke-linejoin="round"/>
+
+  <!-- VPN text -->
+  <text x="256" y="280" font-family="Arial, sans-serif" font-size="80" font-weight="bold"
+        fill="white" text-anchor="middle" dominant-baseline="middle">VPN</text>
+
+  <!-- DeVPN text -->
+  <text x="256" y="460" font-family="Arial, sans-serif" font-size="48" font-weight="600"
+        fill="white" text-anchor="middle" dominant-baseline="middle">DeVPN</text>
+</svg>

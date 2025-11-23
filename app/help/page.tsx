@@ -49,7 +49,7 @@ const faqs = [
     questions: [
       {
         q: 'How is pricing calculated?',
-        a: 'Pricing is per hour of usage. The exact cost depends on the node provider\'s rate. You only pay for actual time connected.',
+        a: 'Pricing is per hour of usage. The exact cost depends on the node provider&apos;s rate. You only pay for actual time connected.',
       },
       {
         q: 'What happens to unused funds?',
@@ -87,7 +87,7 @@ const faqs = [
       },
       {
         q: 'Cannot see my transactions',
-        a: 'Transactions may take a few minutes to appear. Check your wallet address and ensure you\'re on the correct network (testnet/mainnet).',
+        a: 'Transactions may take a few minutes to appear. Check your wallet address and ensure you&apos;re on the correct network (testnet/mainnet).',
       },
       {
         q: 'Balance not updating',
@@ -104,7 +104,7 @@ export default function HelpPage() {
     ...category,
     questions: category.questions.filter(
       q => q.q.toLowerCase().includes(searchQuery.toLowerCase()) ||
-           q.a.toLowerCase().includes(searchQuery.toLowerCase())
+        q.a.toLowerCase().includes(searchQuery.toLowerCase())
     ),
   })).filter(category => category.questions.length > 0);
 
@@ -161,7 +161,7 @@ export default function HelpPage() {
           <h2 className="text-2xl font-bold mb-4">Frequently Asked Questions</h2>
           {filteredFAQs.length === 0 ? (
             <Card className="p-8 text-center">
-              <p className="text-muted-foreground">No results found for "{searchQuery}"</p>
+              <p className="text-muted-foreground">No results found for &quot;{searchQuery}&quot;</p>
             </Card>
           ) : (
             <div className="space-y-6">

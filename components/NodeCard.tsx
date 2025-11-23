@@ -14,22 +14,22 @@ export function NodeCard({ node, onClick }: NodeCardProps) {
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-2xl">{getCountryFlag(node.countryCode)}</span>
+            <span className="text-2xl">{getCountryFlag(node.location.countryCode)}</span>
             <div>
-              <h3 className="font-semibold text-lg">{node.country}</h3>
-              <p className="text-sm text-gray-500">{formatAddress(node.wallet)}</p>
+              <h3 className="font-semibold text-lg">{node.location.country}</h3>
+              <p className="text-sm text-gray-500">{formatAddress(node.provider.walletAddress)}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-4 mt-3 text-sm">
             <div className="flex items-center gap-1">
               <Zap className="w-4 h-4 text-yellow-500" />
-              <span>{node.latency || '--'}ms</span>
+              <span>{node.statistics.responseTime || '--'}ms</span>
             </div>
             <div className="flex items-center gap-1">
               <Signal className="w-4 h-4 text-green-500" />
-              <span className={node.isActive ? 'text-green-600' : 'text-red-600'}>
-                {node.isActive ? 'Active' : 'Inactive'}
+              <span className={node.status === 'online' ? 'text-green-600' : 'text-red-600'}>
+                {node.status === 'online' ? 'Active' : 'Inactive'}
               </span>
             </div>
           </div>
@@ -37,11 +37,11 @@ export function NodeCard({ node, onClick }: NodeCardProps) {
 
         <div className="text-right">
           <div className="text-lg font-bold text-green-600">
-            {formatTON(node.pricePerSecond)} TON/s
+            {formatTON(node.pricing.pricePerHour)} TON/hr
           </div>
-          {node.reputation !== undefined && (
+          {node.provider.reputationScore !== undefined && (
             <div className="text-sm text-gray-600 mt-1">
-              ⭐ {node.reputation.toFixed(1)}
+              ⭐ {node.provider.reputationScore}
             </div>
           )}
           <ArrowRight className="w-5 h-5 text-gray-400 mt-2 ml-auto" />

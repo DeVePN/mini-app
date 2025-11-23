@@ -57,7 +57,7 @@ export default function WelcomePage() {
             Welcome to DeVPN
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            The world's first truly decentralized VPN powered by TON blockchain
+            The world&apos;s first truly decentralized VPN powered by TON blockchain
           </p>
         </div>
 

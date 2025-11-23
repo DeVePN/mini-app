@@ -107,7 +107,7 @@ export default function ConnectToNodePage() {
             <AlertCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-2">Node Not Found</h2>
             <p className="text-muted-foreground mb-6">
-              The node you're trying to connect to doesn't exist.
+              The node you&apos;re trying to connect to doesn&apos;t exist.
             </p>
             <Link href="/nodes">
               <Button>Browse Nodes</Button>
@@ -285,7 +285,7 @@ export default function ConnectToNodePage() {
             <div>
               <p className="font-semibold text-sm mb-1">Important Notice</p>
               <p className="text-sm text-muted-foreground">
-                Connection setup may take 30-60 seconds. Please don't close this window during setup.
+                Connection setup may take 30-60 seconds. Please don&apos;t close this window during setup.
               </p>
             </div>
           </div>
@@ -301,7 +301,7 @@ export default function ConnectToNodePage() {
           <Button
             className="flex-1"
             onClick={handleConnect}
-            disabled={connecting || (walletAddress && (depositAmount[0] > balance.ton || depositAmount[0] < node.pricing.depositRequired))}
+            disabled={connecting || (!!walletAddress && (depositAmount[0] > balance.ton || depositAmount[0] < node.pricing.depositRequired))}
           >
             {connecting ? (
               <>

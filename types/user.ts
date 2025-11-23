@@ -129,3 +129,12 @@ export interface FavoriteNode {
   notes?: string;
   tags?: string[];
 }
+
+export interface TelegramUser {
+  id: number;
+  firstName: string;
+  lastName?: string;
+  username?: string;
+  languageCode?: string;
+  photoUrl?: string;
+}

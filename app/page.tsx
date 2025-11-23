@@ -114,7 +114,7 @@ export default function Home() {
         {/* Page Header */}
         <div>
           <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back! Here's your VPN overview.</p>
+          <p className="text-muted-foreground">Welcome back! Here&apos;s your VPN overview.</p>
         </div>
 
         {/* Connection Status */}

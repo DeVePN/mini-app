@@ -11,6 +11,7 @@ import { Button } from '@/components/Button';
 import { Loader } from '@/components/Loader';
 import { QRCodeDisplay } from '@/components/QRCodeDisplay';
 import { formatTON, formatBandwidth, formatDuration, getCountryFlag } from '@/utils/format';
+import { generateWireGuardConfig } from '@/utils/wireguard';
 import {
   ArrowLeft,
   Wifi,
@@ -35,8 +36,9 @@ export default function SessionPage() {
   const { data: session, isLoading } = useQuery({
     queryKey: ['session', sessionId],
     queryFn: () => api.getSession(sessionId),
-    refetchInterval: (data) => {
+    refetchInterval: (query) => {
       // Only refetch every 3s if the session is active
+      const data = query.state.data;
       return data?.status === 'active' ? 3000 : false;
     },
   });
@@ -119,7 +121,7 @@ export default function SessionPage() {
   }
 
   const isActive = session.status === 'active';
-  const currentCost = duration * Number(session.node.pricePerSecond);
+  const currentCost = duration * (session.costPerHour / 3600);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -135,17 +137,16 @@ export default function SessionPage() {
           </button>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="text-3xl">{getCountryFlag(session.node.countryCode)}</span>
+              <span className="text-3xl">{getCountryFlag(session.nodeLocation.countryCode)}</span>
               <div>
-                <h1 className="text-xl font-bold">{session.node.country}</h1>
+                <h1 className="text-xl font-bold">{session.nodeLocation.country}</h1>
                 <p className="text-sm text-gray-500">VPN Session</p>
               </div>
             </div>
-            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${
-              isActive
-                ? 'bg-green-100 text-green-700'
-                : 'bg-gray-100 text-gray-700'
-            }`}>
+            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${isActive
+              ? 'bg-green-100 text-green-700'
+              : 'bg-gray-100 text-gray-700'
+              }`}>
               {isActive ? (
                 <>
                   <Wifi className="w-4 h-4" />
@@ -189,7 +190,7 @@ export default function SessionPage() {
               </div>
             </div>
 
-            {session.bytesTransferred !== undefined && (
+            {session.metrics?.current?.totalData !== undefined && (
               <div className="mt-4 pt-4 border-t border-green-300">
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
@@ -197,7 +198,7 @@ export default function SessionPage() {
                     <span className="text-green-900/70">Data transferred</span>
                   </div>
                   <span className="font-semibold text-green-900">
-                    {formatBandwidth(session.bytesTransferred)}
+                    {formatBandwidth(session.metrics.current.totalData)}
                   </span>
                 </div>
               </div>
@@ -211,21 +212,20 @@ export default function SessionPage() {
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-600">Server IP</span>
-              <span className="font-mono">{session.serverIP}</span>
+              <span className="font-mono">{session.connection.serverIP}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Server Port</span>
-              <span className="font-mono">{session.serverPort}</span>
+              <span className="font-mono">{session.connection.port}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Client IP</span>
-              <span className="font-mono">{session.clientIP}</span>
+              <span className="font-mono">{session.connection.clientIP}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Status</span>
-              <span className={`font-medium ${
-                isActive ? 'text-green-600' : 'text-gray-600'
-              }`}>
+              <span className={`font-medium ${isActive ? 'text-green-600' : 'text-gray-600'
+                }`}>
                 {session.status.toUpperCase()}
               </span>
             </div>
@@ -247,8 +247,8 @@ export default function SessionPage() {
         {/* WireGuard Configuration */}
         {session.config && (
           <QRCodeDisplay
-            config={session.config}
-            filename={`devpn-${session.node.country.toLowerCase()}.conf`}
+            config={generateWireGuardConfig(session.config, session.connection.clientIP)}
+            filename={`devpn-${session.nodeLocation.country.toLowerCase()}.conf`}
           />
         )}
 
@@ -258,9 +258,9 @@ export default function SessionPage() {
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-600">Rate</span>
-              <span className="font-semibold">{formatTON(session.node.pricePerSecond)} TON/s</span>
+              <span className="font-semibold">{formatTON(session.costPerHour)} TON/hr</span>
             </div>
-            {session.totalCost && (
+            {session.totalCost !== undefined && (
               <div className="flex justify-between pt-2 border-t">
                 <span className="text-gray-600">Total Cost</span>
                 <span className="font-bold text-lg">{formatTON(session.totalCost)} TON</span>
@@ -270,11 +270,11 @@ export default function SessionPage() {
         </Card>
 
         {/* Payment Channel (if exists) */}
-        {session.paymentChannelAddress && (
+        {session.paymentChannelId && (
           <Card className="bg-green-50 border-green-200">
             <h2 className="text-lg font-semibold mb-2 text-green-900">Payment Channel</h2>
             <p className="text-sm font-mono text-green-700 break-all">
-              {session.paymentChannelAddress}
+              {session.paymentChannelId}
             </p>
           </Card>
         )}

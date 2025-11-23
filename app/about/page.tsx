@@ -18,7 +18,7 @@ export default function AboutPage() {
           </div>
           <h1 className="text-4xl font-bold">About DeVPN</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            The world's first truly decentralized VPN network powered by TON blockchain
+            The world&apos;s first truly decentralized VPN network powered by TON blockchain
           </p>
           <Badge variant="outline" className="text-lg px-4 py-2">
             Version 1.0.0 Beta
@@ -32,7 +32,7 @@ export default function AboutPage() {
             DeVPN is building the future of internet privacy through decentralization.
             We believe that VPN services should be owned by the community, not controlled
             by centralized corporations. By leveraging blockchain technology and peer-to-peer
-            networking, we're creating a VPN network that is truly private, censorship-resistant,
+            networking, we&apos;re creating a VPN network that is truly private, censorship-resistant,
             and community-driven.
           </p>
         </Card>

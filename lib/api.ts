@@ -1,5 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
-import { VPNNode, Session } from '@/types';
+import { VPNNode, VPNSession as Session } from '@/types';
 
 class APIClient {
   private client: AxiosInstance;

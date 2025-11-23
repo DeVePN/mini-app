@@ -63,7 +63,6 @@ export interface VPNSession {
   estimatedTimeLeft: number; // seconds
 
   // Settings
-  duration: number; // planned duration in seconds
   autoRenewal: boolean;
   deviceId?: string;
 

@@ -1,16 +1,17 @@
 import { WireGuardConfig } from '@/types';
 
-export function generateWireGuardConfig(config: WireGuardConfig): string {
+export function generateWireGuardConfig(config: WireGuardConfig, clientIP?: string): string {
   return `[Interface]
 PrivateKey = ${config.privateKey}
-Address = ${config.address}
+Address = ${clientIP || '10.0.0.2/32'}
 ${config.dns ? `DNS = ${config.dns}` : ''}
+${config.mtu ? `MTU = ${config.mtu}` : ''}
 
 [Peer]
-PublicKey = ${config.serverPublicKey}
-Endpoint = ${config.serverEndpoint}
+PublicKey = ${config.publicKey}
+Endpoint = ${config.endpoint}
 AllowedIPs = ${config.allowedIPs}
-${config.persistentKeepalive ? `PersistentKeepalive = ${config.persistentKeepalive}` : ''}
+PersistentKeepalive = 25
 `;
 }
 

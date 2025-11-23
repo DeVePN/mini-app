@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Wallet, CheckCircle, AlertCircle, Shield, DollarSign, Network } from 'lucide-react';
-import { useTonConnect Connect } from '@tonconnect/ui-react';
+import { TonConnectButton } from '@tonconnect/ui-react';
+import { useTonConnect } from '@/hooks/use-ton-connect';
 import { useRouter } from 'next/navigation';
 
 export default function ConnectPage() {
@@ -76,7 +77,7 @@ export default function ConnectPage() {
               <TonConnectButton className="w-full" />
 
               <p className="text-xs text-center text-muted-foreground">
-                Don't have a TON wallet?{' '}
+                Don&apos;t have a TON wallet?{' '}
                 <a
                   href="https://tonkeeper.com"
                   target="_blank"
@@ -96,7 +97,7 @@ export default function ConnectPage() {
                 <div>
                   <h3 className="text-xl font-semibold mb-2">Wallet Connected!</h3>
                   <p className="text-sm text-muted-foreground">
-                    You're all set to start using DeVPN
+                    You&apos;re all set to start using DeVPN
                   </p>
                 </div>
               </div>
