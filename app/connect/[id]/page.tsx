@@ -24,35 +24,37 @@ import {
   Wallet
 } from 'lucide-react';
 
+import { useWalletBalance } from '@/hooks/use-wallet-balance';
+
 export default function ConnectToNodePage() {
   const router = useRouter();
   const params = useParams();
   const nodeId = params.id as string;
   const walletAddress = useTonAddress();
   const [tonConnectUI] = useTonConnectUI();
+  const { data: walletBalance } = useWalletBalance();
 
   const [node, setNode] = useState<VPNNode | null>(null);
-  const [balance, setBalance] = useState({ ton: 0, usd: 0 });
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState(false);
   const [depositAmount, setDepositAmount] = useState([10]);
 
+  // Derived balance state
+  const balance = {
+    ton: walletBalance?.ton || 0,
+    usd: (walletBalance?.ton || 0) * 5,
+    locked: 0,
+    available: walletBalance?.ton || 0
+  };
+
   useEffect(() => {
     loadNodeDetails();
-  }, [nodeId, walletAddress]);
+  }, [nodeId]);
 
   const loadNodeDetails = async () => {
     try {
       const nodeData = await mockApi.getNodeById(nodeId);
       setNode(nodeData);
-
-      // Only load balance if wallet is connected
-      if (walletAddress) {
-        const walletBalance = await mockApi.getWalletBalance();
-        setBalance(walletBalance);
-      } else {
-        setBalance({ ton: 0, usd: 0 });
-      }
     } catch (error) {
       console.error('Failed to load node:', error);
     } finally {

@@ -15,12 +15,14 @@ import { VPNNode, VPNSession } from '@/types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+import { useWalletBalance } from '@/hooks/use-wallet-balance';
+
 export default function Home() {
   const router = useRouter();
   const walletAddress = useTonAddress();
+  const { data: walletBalance } = useWalletBalance();
   const [activeSession, setActiveSession] = useState<VPNSession | null>(null);
   const [recommendedNodes, setRecommendedNodes] = useState<VPNNode[]>([]);
-  const [balance, setBalance] = useState({ ton: 0, usd: 0, locked: 0, available: 0 });
   const [loading, setLoading] = useState(true);
   const [userStats, setUserStats] = useState({
     totalSessions: 0,
@@ -28,6 +30,14 @@ export default function Home() {
     totalSpent: '0 TON',
     favoriteNodes: 0
   });
+
+  // Derived balance state for compatibility
+  const balance = {
+    ton: walletBalance?.ton || 0,
+    usd: (walletBalance?.ton || 0) * 5, // Mock exchange rate for now
+    locked: 0,
+    available: walletBalance?.ton || 0
+  };
 
   useEffect(() => {
     const loadDashboard = async () => {
@@ -38,13 +48,8 @@ export default function Home() {
 
         // Only load user-specific data if wallet is connected
         if (walletAddress) {
-          const [sessions, walletBalance] = await Promise.all([
-            mockApi.getActiveSessions(),
-            mockApi.getWalletBalance(),
-          ]);
-
+          const sessions = await mockApi.getActiveSessions();
           setActiveSession(sessions[0] || null);
-          setBalance(walletBalance);
 
           // Load mock user stats only when authenticated
           setUserStats({
@@ -56,7 +61,6 @@ export default function Home() {
         } else {
           // Reset to empty state when no wallet
           setActiveSession(null);
-          setBalance({ ton: 0, usd: 0, locked: 0, available: 0 });
           setUserStats({
             totalSessions: 0,
             dataUsed: '0 GB',

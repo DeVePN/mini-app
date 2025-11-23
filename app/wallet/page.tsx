@@ -14,14 +14,25 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowUpRight, ArrowDownLeft, Layers, Wallet } from 'lucide-react';
 
+import { useWalletBalance } from '@/hooks/use-wallet-balance';
+
 export default function WalletPage() {
   const router = useRouter();
   const walletAddress = useTonAddress();
   const [tonConnectUI] = useTonConnectUI();
-  const [balance, setBalance] = useState({ ton: 0, usd: 0, locked: 0, available: 0 });
+  const { data: walletBalance } = useWalletBalance();
+
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [channels, setChannels] = useState<PaymentChannel[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Derived balance state
+  const balance = {
+    ton: walletBalance?.ton || 0,
+    usd: (walletBalance?.ton || 0) * 5,
+    locked: 0,
+    available: walletBalance?.ton || 0
+  };
 
   useEffect(() => {
     loadWalletData();
@@ -29,13 +40,11 @@ export default function WalletPage() {
 
   const loadWalletData = async () => {
     try {
-      const [walletBalance, txData, channelData] = await Promise.all([
-        mockApi.getWalletBalance(),
+      const [txData, channelData] = await Promise.all([
         mockApi.getTransactions(),
         mockApi.getPaymentChannels(),
       ]);
 
-      setBalance(walletBalance);
       setTransactions(txData.data.slice(0, 5));
       setChannels(channelData);
     } catch (error) {
