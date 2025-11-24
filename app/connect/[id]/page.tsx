@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 
 import { useWalletBalance } from '@/hooks/use-wallet-balance';
-import { SESSION_MANAGER_ADDRESS, buildStartSessionMessage } from '@/lib/contracts';
+import { SESSION_MANAGER_ADDRESS, buildStartSessionMessage, uuidToContractId } from '@/lib/contracts';
 
 export default function ConnectToNodePage() {
   const router = useRouter();
@@ -77,7 +77,9 @@ export default function ConnectToNodePage() {
       // 1. Construct StartSession Message Body
       // Uses correct opcode 0x1CAB8E95 (480744981) from compiled contract
       // Message structure: [32-bit opcode][32-bit nodeId] - no QueryID
-      const body = buildStartSessionMessage(parseInt(nodeId));
+      // Note: nodeId is a UUID string, convert to uint32 for contract
+      const contractNodeId = uuidToContractId(nodeId);
+      const body = buildStartSessionMessage(contractNodeId);
 
       const amountNano = (depositAmount[0] * 1e9).toString();
 
