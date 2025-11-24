@@ -190,13 +190,15 @@ export function transformBackendSession(backendSession: any): any {
     duration_seconds = 0,
     status = 'active',
     cost_nanoton = '0',
-    nodes: node, // Joined node data
     client_ip,
     wg_client_private_key,
     wg_server_public_key,
     dns_servers,
     payment_channel_id
   } = backendSession;
+
+  // Handle both 'nodes' (from Supabase join) and 'node' (from direct API response)
+  const node = backendSession.nodes || backendSession.node;
 
   // Calculate costs
   const cost = nanoTonToTon(cost_nanoton);
