@@ -89,6 +89,7 @@ export default function ConnectToNodePage() {
           {
             address: SESSION_MANAGER_ADDRESS, // Send to Contract
             amount: amountNano,
+            bounce: true, // Required for smart contract transactions
             payload: body.toBoc().toString('base64'), // Binary payload
           },
         ],

@@ -57,13 +57,30 @@ export default function Home() {
             setActiveSession(null);
           }
 
-          // Load mock user stats only when authenticated
-          setUserStats({
-            totalSessions: 156,
-            dataUsed: '245 GB',
-            totalSpent: '12.5 TON',
-            favoriteNodes: 5
-          });
+          // Load real user stats
+          try {
+            const stats = await api.getUserStats(walletAddress);
+
+            // Format data
+            const dataUsedGB = (stats.totalDataUsed / (1024 * 1024 * 1024)).toFixed(2);
+            const totalSpentTON = (stats.totalSpent / 1_000_000_000).toFixed(4); // nanoTON to TON
+
+            setUserStats({
+              totalSessions: stats.totalSessions,
+              dataUsed: `${dataUsedGB} GB`,
+              totalSpent: `${totalSpentTON} TON`,
+              favoriteNodes: 0 // Not currently returned by API
+            });
+          } catch (err) {
+            console.warn('Failed to fetch user stats:', err);
+            // Fallback to zeros on error
+            setUserStats({
+              totalSessions: 0,
+              dataUsed: '0 GB',
+              totalSpent: '0 TON',
+              favoriteNodes: 0
+            });
+          }
         } else {
           // Reset to empty state when no wallet
           setActiveSession(null);
