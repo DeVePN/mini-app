@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTonAddress } from '@tonconnect/ui-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AppLayout } from '@/components/navigation/AppLayout';
 import { ConnectionStatusCard } from '@/components/cards/ConnectionStatusCard';
 import { BalanceCard } from '@/components/cards/BalanceCard';
@@ -21,6 +21,7 @@ import { useWalletBalance } from '@/hooks/use-wallet-balance';
 export default function Home() {
   const router = useRouter();
   const walletAddress = useTonAddress();
+  const queryClient = useQueryClient();
   const { data: walletBalance } = useWalletBalance();
 
   // Derived balance state for compatibility
@@ -73,14 +74,21 @@ export default function Home() {
 
   const loading = nodesLoading || (walletAddress && (sessionLoading || statsLoading));
 
-  const handleDisconnect = async () => {
-    if (!activeSession) return;
-    try {
-      await api.stopSession(activeSession.id);
-      // React Query will automatically refetch active session due to refetchInterval
-    } catch (error) {
+  // Use useMutation for disconnect to properly invalidate queries
+  const disconnectMutation = useMutation({
+    mutationFn: (sessionId: string) => api.stopSession(sessionId),
+    onSuccess: () => {
+      // Immediately invalidate active session query to prevent race condition
+      queryClient.invalidateQueries({ queryKey: ['activeSession', walletAddress] });
+    },
+    onError: (error) => {
       console.error('Failed to disconnect:', error);
-    }
+    },
+  });
+
+  const handleDisconnect = () => {
+    if (!activeSession) return;
+    disconnectMutation.mutate(activeSession.id);
   };
 
   const handleQuickConnect = () => {
