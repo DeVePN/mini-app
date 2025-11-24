@@ -53,17 +53,17 @@ export function SessionCard({ session, onDisconnect, variant = 'active' }: Sessi
             <ArrowUpDown className="h-3 w-3" />
             Data Used
           </p>
-          <p className="font-medium">{formatData(session.metrics.current.totalData)}</p>
+          <p className="font-medium">{formatData(session?.metrics?.current?.totalData ?? 0)}</p>
         </div>
         {variant === 'active' && (
           <>
             <div>
               <p className="text-muted-foreground">Upload</p>
-              <p className="font-medium">{session.metrics.current.uploadSpeed.toFixed(1)} Mbps</p>
+              <p className="font-medium">{(session?.metrics?.current?.uploadSpeed ?? 0).toFixed(1)} Mbps</p>
             </div>
             <div>
               <p className="text-muted-foreground">Download</p>
-              <p className="font-medium">{session.metrics.current.downloadSpeed.toFixed(1)} Mbps</p>
+              <p className="font-medium">{(session?.metrics?.current?.downloadSpeed ?? 0).toFixed(1)} Mbps</p>
             </div>
           </>
         )}

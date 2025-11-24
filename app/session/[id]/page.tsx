@@ -198,7 +198,7 @@ export default function SessionPage() {
                     <span className="text-green-900/70">Data transferred</span>
                   </div>
                   <span className="font-semibold text-green-900">
-                    {formatBandwidth(session.metrics.current.totalData)}
+                    {formatBandwidth(session?.metrics?.current?.totalData ?? 0)}
                   </span>
                 </div>
               </div>
