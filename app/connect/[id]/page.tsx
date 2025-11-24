@@ -63,6 +63,9 @@ export default function ConnectToNodePage() {
     }
   };
 
+  const [status, setStatus] = useState<string>('');
+  const [error, setError] = useState<string | null>(null);
+
   const handleConnect = async () => {
     // Check wallet connection first
     if (!walletAddress) {
@@ -73,34 +76,38 @@ export default function ConnectToNodePage() {
     if (!node) return;
 
     setConnecting(true);
+    setStatus('Initiating transaction...');
+    setError(null);
+
     try {
       // 1. Construct StartSession Message Body
-      // Uses correct opcode 0x1CAB8E95 (480744981) from compiled contract
-      // Message structure: [32-bit opcode][32-bit nodeId] - no QueryID
-      // Note: nodeId is a UUID string, convert to uint32 for contract
       const contractNodeId = uuidToContractId(nodeId);
       const body = buildStartSessionMessage(contractNodeId);
 
-      // Add 0.05 TON for gas fees (contract execution + reply message + storage)
-      // User deposits depositAmount[0] TON, but we send extra for blockchain fees
+      // Add 0.05 TON for gas fees
       const depositNano = depositAmount[0] * 1e9;
-      const gasNano = 0.05 * 1e9; // 50 million nanoTON for gas
+      const gasNano = 0.05 * 1e9;
       const amountNano = (depositNano + gasNano).toString();
 
       const transaction = {
         validUntil: Math.floor(Date.now() / 1000) + 600, // 10 minutes
         messages: [
           {
-            address: SESSION_MANAGER_ADDRESS, // Send to Contract (EQ format = bounceable)
+            address: SESSION_MANAGER_ADDRESS,
             amount: amountNano,
-            payload: body.toBoc().toString('base64'), // Binary payload
+            payload: body.toBoc().toString('base64'),
           },
         ],
       };
 
+      setStatus('Please sign the transaction in your wallet...');
       const result = await tonConnectUI.sendTransaction(transaction);
 
+      setStatus('Transaction signed! Creating session...');
+
       // 2. Call Backend to Start Session
+      // We wait a brief moment to ensure backend is ready if needed, 
+      // but usually we can call immediately.
       const session = await api.startSession({
         userWallet: walletAddress,
         nodeId: nodeId,
@@ -108,13 +115,28 @@ export default function ConnectToNodePage() {
         transactionBoc: result.boc,
       });
 
+      setStatus('Session created! Redirecting...');
+
       // 3. Redirect to session page
       router.push(`/session/${session.id}`);
-    } catch (error) {
-      console.error('Connection failed:', error);
-      // TODO: Show error toast
+    } catch (err: any) {
+      console.error('Connection failed:', err);
+
+      // Determine user-friendly error message
+      let errorMessage = 'Failed to connect. Please try again.';
+
+      if (err.message?.includes('User rejected')) {
+        errorMessage = 'Transaction was rejected by user.';
+      } else if (err.response?.data?.error) {
+        errorMessage = `Server Error: ${err.response.data.error}`;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      setError(errorMessage);
     } finally {
       setConnecting(false);
+      setStatus('');
     }
   };
 
@@ -324,6 +346,32 @@ export default function ConnectToNodePage() {
           </div>
         </Card>
 
+        {/* Status & Error Messages */}
+        {status && (
+          <Card className="p-4 bg-blue-50 dark:bg-blue-950 border-blue-200">
+            <div className="flex items-center gap-3">
+              <div className="animate-spin h-5 w-5 border-2 border-blue-600 border-t-transparent rounded-full" />
+              <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">
+                {status}
+              </p>
+            </div>
+          </Card>
+        )}
+
+        {error && (
+          <Card className="p-4 bg-red-50 dark:bg-red-950 border-red-200">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
+              <div>
+                <p className="font-semibold text-sm text-red-900 dark:text-red-100">Connection Failed</p>
+                <p className="text-sm text-red-700 dark:text-red-300">
+                  {error}
+                </p>
+              </div>
+            </div>
+          </Card>
+        )}
+
         {/* Action Buttons */}
         <div className="flex gap-3">
           <Link href={`/nodes/${nodeId}`} className="flex-1">
@@ -337,10 +385,7 @@ export default function ConnectToNodePage() {
             disabled={connecting || (!!walletAddress && (depositAmount[0] > balance.ton || depositAmount[0] < 1))}
           >
             {connecting ? (
-              <>
-                <span className="animate-spin mr-2">⏳</span>
-                Connecting...
-              </>
+              'Processing...'
             ) : !walletAddress ? (
               <>
                 <Wallet className="h-4 w-4 mr-2" />
