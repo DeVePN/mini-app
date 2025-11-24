@@ -105,9 +105,36 @@ class APIClient {
   }
 
   async getActiveSession(userWallet: string): Promise<Session | null> {
-    const response = await this.client.get(`/session/active/${userWallet}`);
-    const session = response.data.session;
-    return session ? transformBackendSession(session) : null;
+    try {
+      console.log('[API] getActiveSession called with wallet:', userWallet);
+      const response = await this.client.get(`/session/active/${userWallet}`);
+      console.log('[API] getActiveSession raw response:', {
+        success: response.data.success,
+        active: response.data.active,
+        hasSession: !!response.data.session,
+        sessionId: response.data.session?.id
+      });
+      const session = response.data.session;
+      if (session) {
+        const transformed = transformBackendSession(session);
+        console.log('[API] getActiveSession transformed session:', {
+          id: transformed.id,
+          nodeId: transformed.nodeId,
+          status: transformed.status,
+          nodeLocation: transformed.nodeLocation
+        });
+        return transformed;
+      }
+      console.log('[API] getActiveSession: No session to transform');
+      return null;
+    } catch (error) {
+      console.error('[API] getActiveSession error:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('[API] Response status:', error.response?.status);
+        console.error('[API] Response data:', error.response?.data);
+      }
+      throw error;
+    }
   }
 
   // Stats endpoints
