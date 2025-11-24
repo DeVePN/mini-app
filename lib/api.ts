@@ -101,7 +101,8 @@ class APIClient {
 
   async getSessions(userWallet: string): Promise<Session[]> {
     const response = await this.client.get(`/sessions/${userWallet}`);
-    return response.data;
+    // Transform each session to ensure consistent structure with metrics
+    return response.data.map((session: any) => transformBackendSession(session));
   }
 
   async getActiveSession(userWallet: string): Promise<Session | null> {
