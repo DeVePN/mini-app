@@ -1,4 +1,4 @@
-# DeVPN Mini App 🛡️
+# &VPN Mini App 🛡️
 
 **Decentralized VPN Telegram Mini App built on TON Blockchain.**
 
