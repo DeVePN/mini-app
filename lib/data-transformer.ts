@@ -108,7 +108,7 @@ export function transformBackendNode(backendNode: any): VPNNode {
       currency: 'TON',
       estimatedDailyCost: parseFloat((pricePerHour * 24).toFixed(4)), // 24 hours
       estimatedMonthlyCost: parseFloat((pricePerHour * 24 * 30).toFixed(4)), // 30 days
-      depositRequired: pricePerHour * 10, // 10 hours deposit
+      depositRequired: Math.max(1, pricePerHour * 10), // Minimum 1 TON, or 10 hours deposit
     },
     specs: {
       protocol: 'WireGuard',

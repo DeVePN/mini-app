@@ -25,8 +25,7 @@ import {
 } from 'lucide-react';
 
 import { useWalletBalance } from '@/hooks/use-wallet-balance';
-import { beginCell } from '@ton/core';
-import { SESSION_MANAGER_ADDRESS } from '@/lib/contracts';
+import { SESSION_MANAGER_ADDRESS, buildStartSessionMessage } from '@/lib/contracts';
 
 export default function ConnectToNodePage() {
   const router = useRouter();
@@ -39,7 +38,7 @@ export default function ConnectToNodePage() {
   const [node, setNode] = useState<VPNNode | null>(null);
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState(false);
-  const [depositAmount, setDepositAmount] = useState([10]);
+  const [depositAmount, setDepositAmount] = useState([1]);
 
   // Derived balance state
   const balance = {
@@ -76,19 +75,9 @@ export default function ConnectToNodePage() {
     setConnecting(true);
     try {
       // 1. Construct StartSession Message Body
-      // OpCode: 0x... (We need the exact opcode from the compiled contract)
-      // For now, we'll use a placeholder or try to match the struct
-      // message StartSession { nodeId: Int as uint32; }
-
-      // NOTE: You must replace 0x12345678 with the actual OpCode for StartSession
-      // You can find this in the build output (wrappers) of your Tact contract
-      const OP_START_SESSION = 0x12345678;
-
-      const body = beginCell()
-        .storeUint(OP_START_SESSION, 32) // OpCode
-        .storeUint(0, 64) // QueryID (optional, but good practice in TON)
-        .storeUint(parseInt(nodeId), 32) // nodeId
-        .endCell();
+      // Uses correct opcode 0x1CAB8E95 (480744981) from compiled contract
+      // Message structure: [32-bit opcode][32-bit nodeId] - no QueryID
+      const body = buildStartSessionMessage(parseInt(nodeId));
 
       const amountNano = (depositAmount[0] * 1e9).toString();
 
@@ -339,7 +328,7 @@ export default function ConnectToNodePage() {
           <Button
             className="flex-1"
             onClick={handleConnect}
-            disabled={connecting || (!!walletAddress && (depositAmount[0] > balance.ton || depositAmount[0] < node.pricing.depositRequired))}
+            disabled={connecting || (!!walletAddress && (depositAmount[0] > balance.ton || depositAmount[0] < 1))}
           >
             {connecting ? (
               <>
@@ -365,10 +354,10 @@ export default function ConnectToNodePage() {
           </Card>
         )}
 
-        {depositAmount[0] < node.pricing.depositRequired && (
+        {depositAmount[0] < 1 && (
           <Card className="p-4 bg-red-50 dark:bg-red-950 border-red-200">
             <p className="text-sm text-red-600 dark:text-red-400">
-              Minimum deposit required: {node.pricing.depositRequired.toFixed(2)} TON
+              Minimum deposit required: 1.00 TON
             </p>
           </Card>
         )}
