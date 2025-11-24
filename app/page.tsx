@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTonAddress } from '@tonconnect/ui-react';
+import { useQuery } from '@tanstack/react-query';
 import { AppLayout } from '@/components/navigation/AppLayout';
 import { ConnectionStatusCard } from '@/components/cards/ConnectionStatusCard';
 import { BalanceCard } from '@/components/cards/BalanceCard';
@@ -21,15 +22,6 @@ export default function Home() {
   const router = useRouter();
   const walletAddress = useTonAddress();
   const { data: walletBalance } = useWalletBalance();
-  const [activeSession, setActiveSession] = useState<VPNSession | null>(null);
-  const [recommendedNodes, setRecommendedNodes] = useState<VPNNode[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [userStats, setUserStats] = useState({
-    totalSessions: 0,
-    dataUsed: '0 GB',
-    totalSpent: '0 TON',
-    favoriteNodes: 0
-  });
 
   // Derived balance state for compatibility
   const balance = {
@@ -39,73 +31,53 @@ export default function Home() {
     available: walletBalance?.ton || 0
   };
 
-  useEffect(() => {
-    const loadDashboard = async () => {
-      try {
-        // Always load nodes for browsing (no auth required)
-        const nodes = await api.getNodes();
-        setRecommendedNodes(nodes.slice(0, 3));
+  // Fetch recommended nodes (always available, no auth required)
+  const { data: allNodes = [], isLoading: nodesLoading } = useQuery({
+    queryKey: ['nodes'],
+    queryFn: () => api.getNodes(),
+    staleTime: 30000, // Cache for 30 seconds
+  });
 
-        // Only load user-specific data if wallet is connected
-        if (walletAddress) {
-          try {
-            const session = await api.getActiveSession(walletAddress);
-            setActiveSession(session);
-          } catch (err) {
-            console.warn('Failed to fetch active session:', err);
-            // Don't block the UI, just show no session
-            setActiveSession(null);
-          }
+  const recommendedNodes = allNodes.slice(0, 3);
 
-          // Load real user stats
-          try {
-            const stats = await api.getUserStats(walletAddress);
+  // Fetch active session (requires wallet, auto-refetch every 5s)
+  const { data: activeSession = null, isLoading: sessionLoading } = useQuery({
+    queryKey: ['activeSession', walletAddress],
+    queryFn: () => api.getActiveSession(walletAddress!),
+    enabled: !!walletAddress,
+    refetchInterval: 5000, // Refetch every 5 seconds to catch new sessions
+    retry: 1,
+  });
 
-            // Format data
-            const dataUsedGB = (stats.totalDataUsed / (1024 * 1024 * 1024)).toFixed(2);
-            const totalSpentTON = (stats.totalSpent / 1_000_000_000).toFixed(4); // nanoTON to TON
+  // Fetch user stats (requires wallet)
+  const { data: stats, isLoading: statsLoading } = useQuery({
+    queryKey: ['userStats', walletAddress],
+    queryFn: () => api.getUserStats(walletAddress!),
+    enabled: !!walletAddress,
+    staleTime: 10000, // Cache for 10 seconds
+    retry: 1,
+  });
 
-            setUserStats({
-              totalSessions: stats.totalSessions,
-              dataUsed: `${dataUsedGB} GB`,
-              totalSpent: `${totalSpentTON} TON`,
-              favoriteNodes: 0 // Not currently returned by API
-            });
-          } catch (err) {
-            console.warn('Failed to fetch user stats:', err);
-            // Fallback to zeros on error
-            setUserStats({
-              totalSessions: 0,
-              dataUsed: '0 GB',
-              totalSpent: '0 TON',
-              favoriteNodes: 0
-            });
-          }
-        } else {
-          // Reset to empty state when no wallet
-          setActiveSession(null);
-          setUserStats({
-            totalSessions: 0,
-            dataUsed: '0 GB',
-            totalSpent: '0 TON',
-            favoriteNodes: 0
-          });
-        }
-      } catch (error) {
-        console.error('Failed to load dashboard:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Format user stats for display
+  const userStats = stats ? {
+    totalSessions: stats.totalSessions,
+    dataUsed: `${(stats.totalDataUsed / (1024 * 1024 * 1024)).toFixed(2)} GB`,
+    totalSpent: `${(stats.totalSpent / 1_000_000_000).toFixed(4)} TON`,
+    favoriteNodes: 0 // Not currently returned by API
+  } : {
+    totalSessions: 0,
+    dataUsed: '0 GB',
+    totalSpent: '0 TON',
+    favoriteNodes: 0
+  };
 
-    loadDashboard();
-  }, [walletAddress]); // Re-run when wallet connection changes
+  const loading = nodesLoading || (walletAddress && (sessionLoading || statsLoading));
 
   const handleDisconnect = async () => {
     if (!activeSession) return;
     try {
       await api.stopSession(activeSession.id);
-      setActiveSession(null);
+      // React Query will automatically refetch active session due to refetchInterval
     } catch (error) {
       console.error('Failed to disconnect:', error);
     }

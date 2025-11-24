@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
+import { useQuery } from '@tanstack/react-query';
 import { AppLayout } from '@/components/navigation/AppLayout';
 import { SessionCard } from '@/components/cards/SessionCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -16,9 +17,6 @@ export default function SessionsPage() {
   const walletAddress = useTonAddress();
   const [tonConnectUI] = useTonConnectUI();
   const { data: walletBalance } = useWalletBalance();
-  const [activeSessions, setActiveSessions] = useState<VPNSession[]>([]);
-  const [sessionHistory, setSessionHistory] = useState<VPNSession[]>([]);
-  const [loading, setLoading] = useState(true);
 
   // Derived balance state
   const balance = {
@@ -26,43 +24,32 @@ export default function SessionsPage() {
     usd: (walletBalance?.ton || 0) * 5
   };
 
-  useEffect(() => {
-    if (walletAddress) {
-      loadSessions();
-    } else {
-      setLoading(false);
-    }
-  }, [walletAddress]);
+  // Fetch active session (auto-refetch every 5s)
+  const { data: activeSession = null, isLoading: activeLoading } = useQuery({
+    queryKey: ['activeSession', walletAddress],
+    queryFn: () => api.getActiveSession(walletAddress!),
+    enabled: !!walletAddress,
+    refetchInterval: 5000, // Refetch every 5 seconds
+    retry: 1,
+  });
 
-  const loadSessions = async () => {
-    if (!walletAddress) return;
+  // Fetch all sessions (history - no need to poll)
+  const { data: allSessions = [], isLoading: historyLoading } = useQuery({
+    queryKey: ['sessions', walletAddress],
+    queryFn: () => api.getSessions(walletAddress!),
+    enabled: !!walletAddress,
+    staleTime: 10000, // Cache for 10 seconds
+    retry: 1,
+  });
 
-    try {
-      setLoading(true);
-      // Fetch active session and history from real API
-      const [activeSession, allSessions] = await Promise.all([
-        api.getActiveSession(walletAddress),
-        api.getSessions(walletAddress)
-      ]);
-
-      // Set active sessions (API returns single active session or null)
-      setActiveSessions(activeSession ? [activeSession] : []);
-
-      // Filter history to exclude current active session if needed, or just show all
-      // For now, assuming getSessions returns history
-      setSessionHistory(allSessions || []);
-    } catch (error) {
-      console.error('Failed to load sessions:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const activeSessions = activeSession ? [activeSession] : [];
+  const sessionHistory = allSessions || [];
+  const loading = activeLoading || historyLoading;
 
   const handleDisconnect = async (sessionId: string) => {
     try {
       await api.stopSession(sessionId);
-      // Refresh list after disconnect
-      loadSessions();
+      // React Query will automatically refetch due to refetchInterval
     } catch (error) {
       console.error('Failed to disconnect:', error);
     }
