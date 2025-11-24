@@ -8,16 +8,23 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { mockApi } from '@/lib/mock-api';
+import { api } from '@/lib/api';
+import { useWalletBalance } from '@/hooks/use-wallet-balance';
 import { UserProfile } from '@/types';
 import Link from 'next/link';
 import { Settings, Heart, Clock, Database, Trophy, User } from 'lucide-react';
 
 export default function ProfilePage() {
   const walletAddress = useTonAddress();
+  const { data: walletBalance } = useWalletBalance();
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [balance, setBalance] = useState({ ton: 0, usd: 0 });
   const [loading, setLoading] = useState(true);
+
+  // Derived balance state
+  const balance = {
+    ton: walletBalance?.ton || 0,
+    usd: (walletBalance?.ton || 0) * 5
+  };
 
   useEffect(() => {
     loadProfile();
@@ -26,14 +33,50 @@ export default function ProfilePage() {
   const loadProfile = async () => {
     try {
       if (walletAddress) {
-        // Only load data if wallet is connected
-        const [userProfile, walletBalance] = await Promise.all([
-          mockApi.getUserProfile(),
-          mockApi.getWalletBalance(),
-        ]);
+        // Load real user stats
+        let stats;
+        try {
+          stats = await api.getUserStats(walletAddress);
+        } catch (err) {
+          console.warn('Failed to fetch user stats:', err);
+          stats = {
+            totalSessions: 0,
+            totalDataUsed: 0,
+            totalSpent: 0,
+            totalDuration: 0
+          };
+        }
 
-        setProfile(userProfile);
-        setBalance(walletBalance);
+        // Format data for display
+        const dataUsedGB = parseFloat((stats.totalDataUsed / (1024 * 1024 * 1024)).toFixed(2));
+        const totalSpentTON = parseFloat((stats.totalSpent / 1_000_000_000).toFixed(4));
+
+        // Construct profile object with real stats
+        // Note: Backend doesn't store profile info yet, so we use placeholders
+        setProfile({
+          id: walletAddress,
+          telegramId: 0,
+          username: `user_${walletAddress.slice(0, 6)}`,
+          firstName: 'DeVPN',
+          lastName: 'User',
+          accountType: 'consumer',
+          walletAddress: walletAddress,
+          memberSince: new Date().toISOString(), // We don't have this yet
+          statistics: {
+            consumer: {
+              totalSessions: stats.totalSessions,
+              totalDuration: stats.totalDuration,
+              totalDataUsed: dataUsedGB,
+              totalSpent: totalSpentTON,
+              favoriteNode: undefined,
+              mostUsedCountry: undefined
+            }
+          },
+          preferences: {} as any,
+          achievements: [], // We don't have this yet
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
       } else {
         // Set empty profile state when no wallet
         setProfile({
@@ -57,7 +100,6 @@ export default function ProfilePage() {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         });
-        setBalance({ ton: 0, usd: 0 });
       }
     } catch (error) {
       console.error('Failed to load profile:', error);
@@ -138,7 +180,7 @@ export default function ProfilePage() {
           />
           <MetricCard
             title="Favorites"
-            value="5"
+            value="0"
             icon={Heart}
           />
         </div>
