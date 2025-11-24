@@ -8,7 +8,7 @@ export const SESSION_MANAGER_ADDRESS =
 // Opcodes from compiled Tact contract
 // Found in: SmartContract/build/SessionManager/SessionManager_SessionManager.ts line 836
 export const Opcodes = {
-  StartSession: 0x1CAB8E95, // 480744981 decimal - CRC32 of "StartSession"
+  StartSession: 480744981, // 0x1CA7C615 - Correct Opcode from build artifacts
 };
 
 /**
