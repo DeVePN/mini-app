@@ -7,33 +7,50 @@ import { SessionCard } from '@/components/cards/SessionCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { mockApi } from '@/lib/mock-api';
+import { api } from '@/lib/api';
 import { VPNSession } from '@/types';
 import { Clock, Wallet } from 'lucide-react';
+import { useWalletBalance } from '@/hooks/use-wallet-balance';
 
 export default function SessionsPage() {
   const walletAddress = useTonAddress();
   const [tonConnectUI] = useTonConnectUI();
+  const { data: walletBalance } = useWalletBalance();
   const [activeSessions, setActiveSessions] = useState<VPNSession[]>([]);
   const [sessionHistory, setSessionHistory] = useState<VPNSession[]>([]);
-  const [balance, setBalance] = useState({ ton: 0, usd: 0 });
   const [loading, setLoading] = useState(true);
 
+  // Derived balance state
+  const balance = {
+    ton: walletBalance?.ton || 0,
+    usd: (walletBalance?.ton || 0) * 5
+  };
+
   useEffect(() => {
-    loadSessions();
-  }, []);
+    if (walletAddress) {
+      loadSessions();
+    } else {
+      setLoading(false);
+    }
+  }, [walletAddress]);
 
   const loadSessions = async () => {
+    if (!walletAddress) return;
+
     try {
-      const [active, history, walletBalance] = await Promise.all([
-        mockApi.getActiveSessions(),
-        mockApi.getSessionById('session-1'),
-        mockApi.getWalletBalance(),
+      setLoading(true);
+      // Fetch active session and history from real API
+      const [activeSession, allSessions] = await Promise.all([
+        api.getActiveSession(walletAddress),
+        api.getSessions(walletAddress)
       ]);
 
-      setActiveSessions(active);
-      setSessionHistory(history ? [history] : []);
-      setBalance(walletBalance);
+      // Set active sessions (API returns single active session or null)
+      setActiveSessions(activeSession ? [activeSession] : []);
+
+      // Filter history to exclude current active session if needed, or just show all
+      // For now, assuming getSessions returns history
+      setSessionHistory(allSessions || []);
     } catch (error) {
       console.error('Failed to load sessions:', error);
     } finally {
@@ -42,8 +59,13 @@ export default function SessionsPage() {
   };
 
   const handleDisconnect = async (sessionId: string) => {
-    // Simulate disconnect
-    setActiveSessions(prev => prev.filter(s => s.id !== sessionId));
+    try {
+      await api.stopSession(sessionId);
+      // Refresh list after disconnect
+      loadSessions();
+    } catch (error) {
+      console.error('Failed to disconnect:', error);
+    }
   };
 
   // Show connect wallet prompt if no wallet is connected
