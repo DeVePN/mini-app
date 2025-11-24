@@ -62,7 +62,7 @@ class APIClient {
   async getNode(id: string): Promise<VPNNode> {
     const response = await this.client.get(`/nodes/${id}`);
     // Transform backend data to frontend format
-    return transformBackendNode(response.data);
+    return transformBackendNode(response.data.node);
   }
 
   async registerNode(data: {
