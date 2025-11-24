@@ -187,21 +187,92 @@ export function transformBackendSession(backendSession: any): any {
     start_time,
     end_time,
     data_used_bytes = 0,
-    duration_minutes = 0,
+    duration_seconds = 0,
     status = 'active',
-    total_cost_nanoton = '0',
+    cost_nanoton = '0',
+    nodes: node, // Joined node data
+    client_ip,
+    wg_client_private_key,
+    wg_server_public_key,
+    dns_servers,
+    payment_channel_id
   } = backendSession;
+
+  // Calculate costs
+  const cost = nanoTonToTon(cost_nanoton);
+  const pricePerMinute = node?.price_per_minute ? nanoTonToTon(node.price_per_minute) : 0;
+  const costPerHour = pricePerMinute * 60;
+
+  // Generate node name if node data exists
+  const nodeName = node ? generateNodeName(node.city || 'Unknown', node.country || 'Unknown', node.id) : `Node-${node_id}`;
+
+  // Parse endpoint
+  const endpoint = node?.endpoint || '0.0.0.0:51820';
+  const [serverIP, portStr] = endpoint.split(':');
+  const port = parseInt(portStr) || 51820;
 
   return {
     id: String(id),
+    userId: 'user-1', // Placeholder, not critical for UI
     nodeId: String(node_id),
-    userAddress: user_wallet_address,
-    startTime: start_time,
-    endTime: end_time || null,
-    dataUsed: data_used_bytes,
-    duration: duration_minutes,
+    nodeName,
+    nodeLocation: {
+      country: node?.country || 'Unknown',
+      countryCode: node?.country ? getCountryCode(node.country) : 'UN',
+      city: node?.city || 'Unknown',
+    },
     status,
-    cost: nanoTonToTon(total_cost_nanoton),
+    startTime: start_time,
+    endTime: end_time || undefined,
+    duration: duration_seconds,
+
+    // Metrics (Mocked for now as backend doesn't store real-time metrics yet)
+    metrics: {
+      current: {
+        uploadSpeed: Math.random() * 10, // Mock
+        downloadSpeed: Math.random() * 50, // Mock
+        uploadData: (data_used_bytes / (1024 * 1024)) * 0.3, // Mock split
+        downloadData: (data_used_bytes / (1024 * 1024)) * 0.7,
+        totalData: data_used_bytes / (1024 * 1024), // MB
+        latency: 45,
+        timestamp: new Date().toISOString(),
+      },
+      history: []
+    },
+
+    // Connection details
+    connection: {
+      serverIP,
+      clientIP: client_ip || '10.8.0.2',
+      protocol: 'WireGuard',
+      encryption: 'ChaCha20-Poly1305',
+      port,
+    },
+
+    // WireGuard Config
+    config: wg_client_private_key ? {
+      privateKey: wg_client_private_key,
+      publicKey: 'client-pub-key', // Not strictly needed for config generation if we have private
+      endpoint: endpoint,
+      allowedIPs: '0.0.0.0/0, ::/0',
+      dns: dns_servers ? dns_servers.join(', ') : '1.1.1.1, 8.8.8.8'
+    } : undefined,
+
+    // Payment
+    paymentChannelId: payment_channel_id,
+    costPerHour,
+    totalCost: cost,
+    balanceRemaining: 0, // TODO: Implement balance tracking
+    estimatedTimeLeft: 3600, // Mock: 1 hour
+
+    // Settings
+    autoRenewal: false,
+
+    // Events
+    events: [],
+
+    createdAt: start_time,
+    updatedAt: start_time,
   };
 }
 

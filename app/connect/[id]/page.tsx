@@ -87,15 +87,6 @@ export default function ConnectToNodePage() {
       const gasNano = 0.05 * 1e9; // 50 million nanoTON for gas
       const amountNano = (depositNano + gasNano).toString();
 
-      console.log('DEBUG: Connection Attempt', {
-        SESSION_MANAGER_ADDRESS,
-        nodeId,
-        contractNodeId,
-        depositAmount: depositAmount[0],
-        amountNano,
-        opCode: '0x1CAB8E95'
-      });
-
       const transaction = {
         validUntil: Math.floor(Date.now() / 1000) + 600, // 10 minutes
         messages: [
@@ -106,8 +97,6 @@ export default function ConnectToNodePage() {
           },
         ],
       };
-
-      console.log('DEBUG: Transaction Object', transaction);
 
       const result = await tonConnectUI.sendTransaction(transaction);
 
@@ -178,9 +167,6 @@ export default function ConnectToNodePage() {
             <h1 className="text-2xl font-bold">Connect to Node</h1>
             <p className="text-sm text-muted-foreground">
               Set up your VPN connection
-            </p>
-            <p className="text-xs text-muted-foreground mt-1 font-mono bg-muted p-1 rounded inline-block">
-              Contract: {SESSION_MANAGER_ADDRESS.slice(0, 8)}...{SESSION_MANAGER_ADDRESS.slice(-8)}
             </p>
           </div>
         </div>
