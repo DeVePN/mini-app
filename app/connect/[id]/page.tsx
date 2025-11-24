@@ -81,15 +81,18 @@ export default function ConnectToNodePage() {
       const contractNodeId = uuidToContractId(nodeId);
       const body = buildStartSessionMessage(contractNodeId);
 
-      const amountNano = (depositAmount[0] * 1e9).toString();
+      // Add 0.05 TON for gas fees (contract execution + reply message + storage)
+      // User deposits depositAmount[0] TON, but we send extra for blockchain fees
+      const depositNano = depositAmount[0] * 1e9;
+      const gasNano = 0.05 * 1e9; // 50 million nanoTON for gas
+      const amountNano = (depositNano + gasNano).toString();
 
       const transaction = {
         validUntil: Math.floor(Date.now() / 1000) + 600, // 10 minutes
         messages: [
           {
-            address: SESSION_MANAGER_ADDRESS, // Send to Contract
+            address: SESSION_MANAGER_ADDRESS, // Send to Contract (EQ format = bounceable)
             amount: amountNano,
-            bounce: true, // Required for smart contract transactions
             payload: body.toBoc().toString('base64'), // Binary payload
           },
         ],
