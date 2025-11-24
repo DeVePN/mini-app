@@ -97,7 +97,7 @@ export function ConnectionStatusCard({ session, onDisconnect, onQuickConnect }: 
             <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
             <div>
               <p className="text-xs text-muted-foreground">Data Used</p>
-              <p className="text-sm font-semibold">{formatData(session.metrics.current.totalData)}</p>
+              <p className="text-sm font-semibold">{formatData(session?.metrics?.current?.totalData ?? 0)}</p>
             </div>
           </div>
 
@@ -106,7 +106,7 @@ export function ConnectionStatusCard({ session, onDisconnect, onQuickConnect }: 
             <div>
               <p className="text-xs text-muted-foreground">Download</p>
               <p className="text-sm font-semibold text-green-600">
-                {session.metrics.current.downloadSpeed.toFixed(1)} Mbps
+                {(session?.metrics?.current?.downloadSpeed ?? 0).toFixed(1)} Mbps
               </p>
             </div>
           </div>
@@ -116,7 +116,7 @@ export function ConnectionStatusCard({ session, onDisconnect, onQuickConnect }: 
             <div>
               <p className="text-xs text-muted-foreground">Upload</p>
               <p className="text-sm font-semibold text-green-600">
-                {session.metrics.current.uploadSpeed.toFixed(1)} Mbps
+                {(session?.metrics?.current?.uploadSpeed ?? 0).toFixed(1)} Mbps
               </p>
             </div>
           </div>

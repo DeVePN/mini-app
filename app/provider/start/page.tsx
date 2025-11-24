@@ -9,8 +9,10 @@ import { RequireWallet } from '@/components/RequireWallet';
 import { useState } from 'react';
 import Link from 'next/link';
 import { CheckCircle, DollarSign, Shield, Users, TrendingUp, Server } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ProviderStartPage() {
+  const { toast } = useToast();
   const [bandwidth, setBandwidth] = useState([100]);
   const [hoursOnline, setHoursOnline] = useState([12]);
   const [price, setPrice] = useState([0.05]);
@@ -152,21 +154,32 @@ export default function ProviderStartPage() {
 
         {/* CTA */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <RequireWallet
-            modalTitle="Connect Wallet to Become a Provider"
-            modalDescription="You need to connect your TON wallet to register as a VPN provider and receive earnings."
+          <Button
+            size="lg"
+            className="w-full sm:w-auto"
+            onClick={() => {
+              toast({
+                title: "Coming Soon",
+                description: "Provider features are currently under development.",
+              });
+            }}
           >
-            <Link href="/provider/register">
-              <Button size="lg" className="w-full sm:w-auto">
-                Start Setup
-              </Button>
-            </Link>
-          </RequireWallet>
-          <Link href="/help/provider">
-            <Button size="lg" variant="outline" className="w-full sm:w-auto">
-              Learn More
-            </Button>
-          </Link>
+            Start Setup
+          </Button>
+
+          <Button
+            size="lg"
+            variant="outline"
+            className="w-full sm:w-auto"
+            onClick={() => {
+              toast({
+                title: "Coming Soon",
+                description: "Documentation is currently being updated.",
+              });
+            }}
+          >
+            Learn More
+          </Button>
         </div>
 
         {/* Info Footer */}
