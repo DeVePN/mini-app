@@ -106,7 +106,8 @@ class APIClient {
 
   async getActiveSession(userWallet: string): Promise<Session | null> {
     const response = await this.client.get(`/session/active/${userWallet}`);
-    return response.data.session;
+    const session = response.data.session;
+    return session ? transformBackendSession(session) : null;
   }
 
   // Stats endpoints
