@@ -3,8 +3,7 @@
 import { TonConnectUIProvider } from '@tonconnect/ui-react';
 import { ReactNode } from 'react';
 
-const manifestUrl = process.env.NEXT_PUBLIC_MANIFEST_URL ||
-  (typeof window !== 'undefined' ? `${window.location.origin}/tonconnect-manifest.json` : '');
+const manifestUrl = 'https://mini-app-e694.vercel.app/tonconnect-manifest.json';
 
 // Telegram Mini App return URL
 const telegramBotUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'devpn_bot';
